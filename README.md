@@ -15,3 +15,10 @@ docker run -p 15984:15984 couchdb:search
 There will be a Fauxton console available at http://localhost:15984/_utils
 
 Full text searching is enabled and fully functional.  See the Cloudant [documentation](https://cloudant.com/for-developers/search/) for more info on how to test use the full text searching capabilities.
+
+## Running tests
+It uses [Serverspec](http://serverspec.org/) to test the Dockerfile:
+```
+$ bundle
+$ bundle exec rspec
+```

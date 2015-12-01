@@ -1,0 +1,9 @@
+image: roster.rtp.raleigh.ibm.com/ruby-docker:latest
+cache:
+  - /var/lib/docker
+env:
+  - LOG=file    # redirect docker daemon log to /var/log/docker.log
+script:
+  - /usr/local/bin/wrapdocker || true
+  - bundle
+  - bundle exec rspec

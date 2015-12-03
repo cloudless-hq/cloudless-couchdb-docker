@@ -1,12 +1,16 @@
-FROM debian:jessie
+FROM ubuntu:trusty
 
 ENV COUCHDB_VERSION couchdb-search
+
+ENV DEBIAN_FRONTEND noninteractive
 
 ENV MAVEN_VERSION 3.3.3
 
 RUN groupadd -r couchdb && useradd -d /usr/src/couchdb -g couchdb couchdb
 
 # download dependencies
+RUN apt-get install -y --no-install-recommends apt-utils
+
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends build-essential libmozjs185-dev \
     libnspr4 libnspr4-0d libnspr4-dev libcurl4-openssl-dev libicu-dev \
@@ -14,11 +18,12 @@ RUN apt-get update -y \
     apt-transport-https python wget \
     python-sphinx texlive-base texinfo texlive-latex-extra texlive-fonts-recommended texlive-fonts-extra #needed to build the doc
 
-RUN wget http://packages.erlang-solutions.com/erlang/esl-erlang/FLAVOUR_1_general/esl-erlang_18.0-1~debian~jessie_amd64.deb
-RUN apt-get install -y --no-install-recommends libwxgtk3.0 default-jdk
+RUN wget http://packages.erlang-solutions.com/erlang/esl-erlang/FLAVOUR_1_general/esl-erlang_18.1-1~ubuntu~precise_amd64.deb
+RUN apt-get install -y --no-install-recommends openjdk-7-jdk
 RUN apt-get install -y --no-install-recommends procps
+RUN apt-get install -y --no-install-recommends libwxgtk2.8-0
 
-RUN dpkg -i esl-erlang_18.0-1~debian~jessie_amd64.deb
+RUN dpkg -i esl-erlang_18.1-1~ubuntu~precise_amd64.deb
 
 RUN curl -fsSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz | tar xzf - -C /usr/share \
   && mv /usr/share/apache-maven-$MAVEN_VERSION /usr/share/maven \
@@ -60,6 +65,8 @@ RUN mkdir -p /var/log/supervisor/ \
 RUN sed -i'' 's/bind_address = 127.0.0.1/bind_address = 0.0.0.0/' /usr/src/couchdb/rel/overlay/etc/default.ini
 
 EXPOSE 5984
+EXPOSE 15984
+
 WORKDIR /usr/src/couchdb
 
 ENTRYPOINT ["/usr/bin/supervisord"]

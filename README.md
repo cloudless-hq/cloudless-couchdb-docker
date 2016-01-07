@@ -1,5 +1,5 @@
-# Turkeyburger
-This is an [CouchDB 2.0](http://couchdb.apache.org/) with full text search capabilities that follows the steps from this [blog post](https://cloudant.com/blog/enable-full-text-search-in-apache-couchdb/#.Vly24SCrQbV) from [Cloudant](https://cloudant.com/).
+# cloudant-search
+This is a [CouchDB 2.0](http://couchdb.apache.org/) with full text search capabilities that follows the steps from this [blog post](https://cloudant.com/blog/enable-full-text-search-in-apache-couchdb/#.Vly24SCrQbV) from [Cloudant](https://cloudant.com/).
 
 ## Prerequisites
 You need to have a recent version of [Docker](https://www.docker.com/) installed

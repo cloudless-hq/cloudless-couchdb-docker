@@ -1,16 +1,15 @@
+
 FROM ubuntu:trusty
 
 ENV COUCHDB_VERSION couchdb-search
 
-ENV DEBIAN_FRONTEND noninteractive
-
 ENV MAVEN_VERSION 3.3.3
+
+ENV DEBIAN_FRONTEND noninteractive
 
 RUN groupadd -r couchdb && useradd -d /usr/src/couchdb -g couchdb couchdb
 
 # download dependencies
-RUN apt-get install -y --no-install-recommends apt-utils
-
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends build-essential libmozjs185-dev \
     libnspr4 libnspr4-0d libnspr4-dev libcurl4-openssl-dev libicu-dev \
@@ -65,8 +64,6 @@ RUN mkdir -p /var/log/supervisor/ \
 RUN sed -i'' 's/bind_address = 127.0.0.1/bind_address = 0.0.0.0/' /usr/src/couchdb/rel/overlay/etc/default.ini
 
 EXPOSE 5984
-EXPOSE 15984
-
 WORKDIR /usr/src/couchdb
 
 ENTRYPOINT ["/usr/bin/supervisord"]

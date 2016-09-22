@@ -30,16 +30,14 @@ RUN curl -fsSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binar
 
 ENV MAVEN_HOME /usr/share/maven
 
-RUN curl -s https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key add - \
-  && echo 'deb https://deb.nodesource.com/node jessie main' > /etc/apt/sources.list.d/nodesource.list \
-  && echo 'deb-src https://deb.nodesource.com/node jessie main' >> /etc/apt/sources.list.d/nodesource.list \
+RUN curl -sL https://deb.nodesource.com/setup_6.x | bash - \
   && apt-get update -y && apt-get install -y nodejs \
   && npm install -g npm && npm install -g grunt-cli
 
 RUN cd /usr/src \
- && git clone https://github.com/cloudant/couchdb \
+ && git clone https://github.com/homerjam/couchdb \
  && cd couchdb \
- && git checkout article-cloudant-com-dreyfus \
+ && git checkout cloudant-search \
  && ./configure --disable-docs \
  && make \
  && cp /usr/src/couchdb/dev/run /usr/local/bin/couchdb \
@@ -61,7 +59,7 @@ RUN mkdir -p /var/log/supervisor/ \
  && chmod 755 /var/log/supervisor/
 
 # Expose to the outside
-RUN sed -i'' 's/bind_address = 127.0.0.1/bind_address = 0.0.0.0/' /usr/src/couchdb/rel/overlay/etc/default.ini
+RUN sed -i 's/bind_address = 127.0.0.1/bind_address = 0.0.0.0/' /usr/src/couchdb/rel/overlay/etc/default.ini
 
 EXPOSE 5984
 WORKDIR /usr/src/couchdb

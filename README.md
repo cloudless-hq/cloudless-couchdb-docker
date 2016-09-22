@@ -8,8 +8,13 @@ You need to have a recent version of [Docker](https://www.docker.com/) installed
 
 Build the CouchDB image from the Dockerfile and run using the following:
 ```
-docker build --tag="couchdb:search" ${PWD}
-docker run -p 15984:15984 couchdb:search
+$ docker build --tag="couchdb:search" ${PWD}
+
+$ docker run -p 15984:15984 couchdb:search
+
+or with persistent storage:
+
+$ docker run -d -p 15984:15984 -v /tmp/couchdb:/usr/src/couchdb/dev/lib --name couchdb couchdb:search
 ```
 
 There will be a Fauxton console available at http://localhost:15984/_utils

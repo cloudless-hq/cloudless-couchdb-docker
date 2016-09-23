@@ -1,4 +1,3 @@
-
 FROM ubuntu:trusty
 
 ENV COUCHDB_VERSION couchdb-search
@@ -47,16 +46,16 @@ RUN cd /usr/src \
 RUN cd /usr/src \
  && git clone https://github.com/cloudant-labs/clouseau \
  && cd /usr/src/clouseau \
- && mvn -Dmaven.test.skip=true install
+ && mvn -D maven.test.skip=true install
 
 RUN apt-get -y install haproxy
 
 RUN apt-get install -y supervisor
 
-COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
 RUN mkdir -p /var/log/supervisor/ \
  && chmod 755 /var/log/supervisor/
+
+ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Expose to the outside
 RUN sed -i 's/bind_address = 127.0.0.1/bind_address = 0.0.0.0/' /usr/src/couchdb/rel/overlay/etc/default.ini

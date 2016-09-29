@@ -8,7 +8,6 @@ ENV DEBIAN_FRONTEND noninteractive
 
 RUN groupadd -r couchdb && useradd -d /usr/src/couchdb -g couchdb couchdb
 
-# download dependencies
 RUN apt-get update -y \
   && apt-get install -y --no-install-recommends build-essential libmozjs185-dev \
     libnspr4 libnspr4-0d libnspr4-dev libcurl4-openssl-dev libicu-dev \
@@ -32,14 +31,17 @@ ENV MAVEN_HOME /usr/share/maven
 RUN curl -sL https://deb.nodesource.com/setup_6.x | bash - \
   && apt-get update -y && apt-get install -y nodejs \
   && npm install -g npm && npm install -g grunt-cli
+RUN ln -sf "$(which nodejs)" /usr/bin/node
 
 RUN cd /usr/src \
  && git clone https://github.com/homerjam/couchdb \
  && cd couchdb \
- && git checkout cloudant-search \
- && ./configure --disable-docs \
- && make \
- && cp /usr/src/couchdb/dev/run /usr/local/bin/couchdb \
+ && git checkout cloudant-search
+RUN cd /usr/src/couchdb \
+ && ./configure --disable-docs
+RUN cd /usr/src/couchdb \
+ && make
+RUN cp /usr/src/couchdb/dev/run /usr/local/bin/couchdb \
  && chmod +x /usr/src/couchdb/dev/run \
  && chown -R couchdb:couchdb /usr/src/couchdb
 
@@ -51,16 +53,18 @@ RUN cd /usr/src \
 RUN apt-get -y install haproxy
 
 RUN apt-get install -y supervisor
-
 RUN mkdir -p /var/log/supervisor/ \
  && chmod 755 /var/log/supervisor/
-
 ADD supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Expose to the outside
 RUN sed -i 's/bind_address = 127.0.0.1/bind_address = 0.0.0.0/' /usr/src/couchdb/rel/overlay/etc/default.ini
 
+# Remove reduce limit
+RUN sed -i 's/reduce_limit = true/reduce_limit = false/' /usr/src/couchdb/rel/overlay/etc/default.ini
+
 EXPOSE 5984
+
 WORKDIR /usr/src/couchdb
 
 ENTRYPOINT ["/usr/bin/supervisord"]

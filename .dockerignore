@@ -1,5 +1,2 @@
-rspec/
 .git
-Gemfile
 *.lock
-.rspec

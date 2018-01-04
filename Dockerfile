@@ -24,6 +24,7 @@ RUN groupadd -r couchdb && useradd -d /couchdb -g couchdb couchdb
 RUN apt-get update -y \
   && apt-get install -y apt-utils \
   && apt-get install -y --no-install-recommends \
+  python \
   build-essential \
   apt-transport-https \
   gcc \
@@ -39,9 +40,8 @@ RUN apt-get update -y \
   ca-certificates \
   git \
   pkg-config \
-  python \
-  haproxy \
   wget \
+  supervisor \
   libicu52 \
   python-sphinx \
   texlive-base \
@@ -51,10 +51,9 @@ RUN apt-get update -y \
   texlive-fonts-extra \
   openjdk-7-jdk \
   procps \
-  libwxgtk2.8-0 \
-  && rm -rf /var/lib/apt/lists/*
+  libwxgtk2.8-0
 
-RUN wget http://packages.erlang-solutions.com/erlang/esl-erlang/FLAVOUR_1_general/esl-erlang_18.1-1~ubuntu~precise_amd64.deb
+RUN wget -nv  http://packages.erlang-solutions.com/erlang/esl-erlang/FLAVOUR_1_general/esl-erlang_18.1-1~ubuntu~precise_amd64.deb
 RUN dpkg -i esl-erlang_18.1-1~ubuntu~precise_amd64.deb
 
 # install maven
@@ -65,59 +64,58 @@ RUN curl -fsSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binar
 # install nodejs
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
   && apt-get install -y nodejs \
-  && npm install -g pm2 \
   && npm install -g grunt-cli
 
 # get couchdb source
-RUN cd /usr/src \
-  && git clone https://github.com/neutrinity/couchdb \
-  && cd couchdb \
-  && git checkout 56245328ee96c828f27dea9365dc4347921791e6
+RUN mkdir /usr/src/couchdb && cd /usr/src/couchdb \
+  && git clone https://github.com/neutrinity/couchdb . \
+  && git checkout 350f5919685c82e821bb69110fd21fa4d7e101b9
 
 # compile and install couchdb
 RUN cd /usr/src/couchdb \
   && ./configure -c --disable-docs \
   && make release \
-  && cp /usr/src/couchdb/dev/run /usr/local/bin/couchdb \
   && mv /usr/src/couchdb/rel/couchdb /couchdb
 
-# Setup directories and permissions
-RUN chown -R couchdb:couchdb /couchdb \
-  && chmod +x /usr/local/bin/couchdb
-
 # get, compile and install clouseau
-RUN cd /usr/src \
-  && git clone https://github.com/neutrinity/clouseau \
-  && cd /usr/src/clouseau \
-  && mvn -D maven.test.skip=true install \
-  && mkdir /clouseau \
-  && mv /usr/src/clouseau /clouseau
+RUN mkdir /clouseau && cd /clouseau \
+  && git clone https://github.com/neutrinity/clouseau . \
+  && mvn -D maven.test.skip=true install
 
 # Cleanup build detritus
-RUN apt-get purge -y --auto-remove apt-transport-https \
-  gcc \
-  g++ \
-  libcurl4-openssl-dev \
-  libicu-dev \
-  libmozjs185-dev \
-  make \
-  && rm -rf /var/lib/apt/lists/* /usr/src/couchdb* /usr/src/clouseau*
+# RUN apt-get purge -y --auto-remove apt-transport-https \
+#   gcc \
+#   g++ \
+#   libcurl4-openssl-dev \
+#   libicu-dev \
+#   libmozjs185-dev \
+#   make \
+#   && rm -rf /var/lib/apt/lists/*
+# /usr/src/couchdb*
 
 COPY ./config/local.ini /couchdb/etc/local.d/
 COPY ./config/vm.args /couchdb/etc/
 RUN chown -R couchdb:couchdb /couchdb/etc/local.d/ /couchdb/etc/vm.args
 
+RUN mkdir /couchdb/data
 VOLUME ["/couchdb/data"]
-VOLUME ["/couchdb/config"]
 
-EXPOSE 5984 4369 9100 5986 15984
+EXPOSE 5984
 
 WORKDIR /couchdb
 
-COPY ./config/pm2.json /couchdb/
+COPY ./preflight-couchdb.sh /couchdb/
+RUN chmod +x /couchdb/preflight-couchdb.sh
 
-COPY ./docker-entrypoint.sh /couchdb/
-RUN chmod +x /couchdb/docker-entrypoint.sh \
-  && chown -R couchdb:couchdb /couchdb/docker-entrypoint.sh
+RUN mkdir -p /var/log/supervisor/ \
+ && chmod 755 /var/log/supervisor/
+COPY ./config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-CMD ["pm2-docker", "--raw", "start", "--json", "--auto-exit", "pm2.json"]
+# Setup directories and permissions
+RUN chown -R couchdb:couchdb \
+  /couchdb \
+  /clouseau \
+  /var/log/supervisor
+
+USER couchdb
+ENTRYPOINT ["/usr/bin/supervisord"]

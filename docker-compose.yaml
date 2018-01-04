@@ -28,7 +28,6 @@ services:
       - ntr
     volumes:
       - './data/:/couchdb/data/'
-    # /tmp/couchdb:/usr/src/couchdb/dev/lib
 networks:
   ntr:
     external: true

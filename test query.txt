@@ -1,0 +1,25 @@
+{
+   "selector": {
+      "$text": "hihi",
+      "test": {
+         "$elemMatch": {
+            "a": {
+               "$in": [
+                  "as999df",
+                  "bs%%%df",
+                  "asdfasdf9asdfsadfsdf hihi"
+               ]
+            }
+         }
+      }
+   },
+   "sort": [
+      "time:number"
+   ],
+   "fields": [
+      "test",
+      "time",
+      "text"
+   ],
+   "limit": 100
+}

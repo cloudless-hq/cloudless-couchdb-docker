@@ -120,4 +120,6 @@ RUN cd /clouseau \
   && git clone https://github.com/neutrinity/clouseau . \
   && mvn -D maven.test.skip=true install
 
+VOLUME ["/clouseau/target"]
+
 ENTRYPOINT ["/usr/bin/supervisord"]

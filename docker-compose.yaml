@@ -27,7 +27,8 @@ services:
     networks:
       - ntr
     volumes:
-      - './data/:/couchdb/data/'
+      - './data/couchdb/:/couchdb/data/'
+      - './data/clouseau/:/clouseau/target/'
 networks:
   ntr:
     external: true

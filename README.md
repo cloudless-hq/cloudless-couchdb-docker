@@ -14,7 +14,7 @@ You need to have a recent version of [Docker](https://www.docker.com/) installed
 Build the CouchDB image from the Dockerfile and run using the following:
 
 ```
-$ docker-copose up
+$ docker-compose up
 
 ```
 

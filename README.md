@@ -1,4 +1,4 @@
-# cloudant-search
+# couchdb with cloudant search
 This is a merge from apache/couchdb-docker and homerjam/cloudant-search
 
 The goal is to make a production ready and up to date docker container with cloudant search, geo serach (future) and couchdb

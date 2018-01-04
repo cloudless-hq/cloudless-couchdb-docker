@@ -77,21 +77,15 @@ RUN cd /usr/src/couchdb \
   && make release \
   && mv /usr/src/couchdb/rel/couchdb /couchdb
 
-# get, compile and install clouseau
-RUN mkdir /clouseau && cd /clouseau \
-  && git clone https://github.com/neutrinity/clouseau . \
-  && mvn -D maven.test.skip=true install
-
 # Cleanup build detritus
-# RUN apt-get purge -y --auto-remove apt-transport-https \
-#   gcc \
-#   g++ \
-#   libcurl4-openssl-dev \
-#   libicu-dev \
-#   libmozjs185-dev \
-#   make \
-#   && rm -rf /var/lib/apt/lists/*
-# /usr/src/couchdb*
+RUN apt-get purge -y --auto-remove apt-transport-https \
+  gcc \
+  g++ \
+  libcurl4-openssl-dev \
+  libicu-dev \
+  libmozjs185-dev \
+  make \
+  && rm -rf /var/lib/apt/lists/* /usr/src/couchdb*
 
 COPY ./config/local.ini /couchdb/etc/local.d/
 COPY ./config/vm.args /couchdb/etc/
@@ -111,6 +105,8 @@ RUN mkdir -p /var/log/supervisor/ \
  && chmod 755 /var/log/supervisor/
 COPY ./config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
+RUN mkdir /clouseau
+
 # Setup directories and permissions
 RUN chown -R couchdb:couchdb \
   /couchdb \
@@ -118,4 +114,10 @@ RUN chown -R couchdb:couchdb \
   /var/log/supervisor
 
 USER couchdb
+
+# get, compile and install clouseau
+RUN cd /clouseau \
+  && git clone https://github.com/neutrinity/clouseau . \
+  && mvn -D maven.test.skip=true install
+
 ENTRYPOINT ["/usr/bin/supervisord"]

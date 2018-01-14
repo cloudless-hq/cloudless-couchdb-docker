@@ -46,7 +46,7 @@ RUN apt-get update -y \
   # texlive-latex-extra \
   # texlive-fonts-recommended \
   # texlive-fonts-extra \
-  # libwxgtk2.8-0 \
+  libwxgtk2.8-0 \
   openjdk-7-jdk \
   procps
   

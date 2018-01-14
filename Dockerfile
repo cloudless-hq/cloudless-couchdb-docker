@@ -12,8 +12,6 @@
 
 FROM ubuntu:14.04
 
-MAINTAINER NTR info@ntr.io
-
 ENV COUCHDB_VERSION 2.1.1
 ENV MAVEN_VERSION 3.5.2
 ENV DEBIAN_FRONTEND noninteractive
@@ -41,18 +39,17 @@ RUN apt-get update -y \
   git \
   pkg-config \
   wget \
-  supervisor \
   libicu52 \
   python-sphinx \
-  texlive-base \
-  texinfo \
-  texlive-latex-extra \
-  texlive-fonts-recommended \
-  texlive-fonts-extra \
+  # texlive-base \
+  # texinfo \
+  # texlive-latex-extra \
+  # texlive-fonts-recommended \
+  # texlive-fonts-extra \
+  # libwxgtk2.8-0 \
   openjdk-7-jdk \
-  procps \
-  libwxgtk2.8-0
-
+  procps
+  
 RUN wget -nv  http://packages.erlang-solutions.com/erlang/esl-erlang/FLAVOUR_1_general/esl-erlang_18.1-1~ubuntu~precise_amd64.deb
 RUN dpkg -i esl-erlang_18.1-1~ubuntu~precise_amd64.deb
 
@@ -77,6 +74,17 @@ RUN cd /usr/src/couchdb \
   && make release \
   && mv /usr/src/couchdb/rel/couchdb /couchdb
 
+
+# get, compile and install clouseau
+RUN mkdir /clouseau && chown -R couchdb:couchdb /clouseau /couchdb
+
+USER couchdb
+RUN cd /clouseau \
+  && git clone https://github.com/neutrinity/clouseau . \
+  && mvn -D maven.test.skip=true install
+
+USER root
+
 # Cleanup build detritus
 RUN apt-get purge -y --auto-remove apt-transport-https \
   gcc \
@@ -98,29 +106,19 @@ EXPOSE 5984
 
 WORKDIR /couchdb
 
-COPY ./preflight-couchdb.sh /couchdb/
-RUN chmod +x /couchdb/preflight-couchdb.sh
-
-RUN mkdir -p /var/log/supervisor/ \
- && chmod 755 /var/log/supervisor/
-COPY ./config/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
-RUN mkdir /clouseau
+COPY ./start-couchdb /couchdb/
+RUN chmod +x /couchdb/start-couchdb
+COPY ./start-clouseau /couchdb/
+RUN chmod +x /couchdb/start-clouseau
+# COPY ./karma /couchdb/
+# RUN chmod +x /couchdb/karma
 
 # Setup directories and permissions
-RUN chown -R couchdb:couchdb \
-  /couchdb \
-  /clouseau \
-  /var/log/supervisor
+RUN chown -R couchdb:couchdb /couchdb
 
 USER couchdb
-
-# get, compile and install clouseau
-RUN cd /clouseau \
-  && git clone https://github.com/neutrinity/clouseau . \
-  && mvn -D maven.test.skip=true install
 
 RUN mkdir /clouseau/target/clouseau1
 VOLUME ["/clouseau/target/clouseau1"]
 
-ENTRYPOINT ["/usr/bin/supervisord"]
+ENTRYPOINT ["/couchdb/start-couchdb"]

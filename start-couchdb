@@ -53,3 +53,5 @@ if ! grep -Pzoqr '\[admins\]\n[^;]\w+' /couchdb/etc/local.d/*.ini; then
 		****************************************************
 	EOWARN
 fi
+
+bin/couchdb

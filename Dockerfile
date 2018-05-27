@@ -41,15 +41,10 @@ RUN apt-get update -y \
   wget \
   libicu52 \
   python-sphinx \
-  # texlive-base \
-  # texinfo \
-  # texlive-latex-extra \
-  # texlive-fonts-recommended \
-  # texlive-fonts-extra \
   libwxgtk2.8-0 \
   openjdk-7-jdk \
   procps
-  
+
 RUN wget -nv  http://packages.erlang-solutions.com/erlang/esl-erlang/FLAVOUR_1_general/esl-erlang_18.1-1~ubuntu~precise_amd64.deb
 RUN dpkg -i esl-erlang_18.1-1~ubuntu~precise_amd64.deb
 

@@ -10,7 +10,8 @@
 # License for the specific language governing permissions and limitations under
 # the License.
 
-FROM ubuntu:17.10
+# critical package deps preventing update: openjdk-7-jdk, libnspr4-0d, libwxgtk2.8-0, libicu52
+FROM ubuntu:14.04
 
 ENV MAVEN_VERSION 3.5.2
 ENV DEBIAN_FRONTEND noninteractive

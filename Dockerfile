@@ -41,11 +41,6 @@ RUN apt-get update -y \
   wget \
   libicu52 \
   python-sphinx \
-  # texlive-base \
-  # texinfo \
-  # texlive-latex-extra \
-  # texlive-fonts-recommended \
-  # texlive-fonts-extra \
   libwxgtk2.8-0 \
   openjdk-7-jdk \
   procps
@@ -110,8 +105,9 @@ COPY ./start-couchdb /couchdb/
 RUN chmod +x /couchdb/start-couchdb
 COPY ./start-clouseau /couchdb/
 RUN chmod +x /couchdb/start-clouseau
-# COPY ./karma /couchdb/
-# RUN chmod +x /couchdb/karma
+
+COPY ./karma /couchdb/
+RUN chmod +x /couchdb/karma
 
 # Setup directories and permissions
 RUN chown -R couchdb:couchdb /couchdb

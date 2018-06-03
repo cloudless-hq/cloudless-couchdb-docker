@@ -3,7 +3,7 @@ This is a merge from apache/couchdb-docker and homerjam/cloudant-search
 
 The goal is to make a production ready and up to date docker container with cloudant search, geo serach (future) and couchdb
 
-Current version is [CouchDB 2.1.1](http://couchdb.apache.org/) with full text search capabilities that follows the steps from this [blog post](https://cloudant.com/blog/enable-full-text-search-in-apache-couchdb/#.Vly24SCrQbV) from [Cloudant](https://cloudant.com/).
+Current version is [CouchDB 2.2.0](http://couchdb.apache.org/) with full text search capabilities that follows the steps from this [blog post](https://cloudant.com/blog/enable-full-text-search-in-apache-couchdb/#.Vly24SCrQbV) from [Cloudant](https://cloudant.com/).
 
 ## Prerequisites
 

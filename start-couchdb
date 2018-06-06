@@ -13,32 +13,34 @@
 
 set -e
 
-chown -R couchdb:couchdb /couchdb
+couchdb_base=/opt/couchdb
 
-chmod -R 0770 /couchdb/data
+chown -R couchdb:couchdb $couchdb_base
 
-chmod 664 /couchdb/etc/*.ini
-chmod 664 /couchdb/etc/local.d/*.ini
-chmod 775 /couchdb/etc/*.d
+chmod -R 0770 $couchdb_base/data
 
-if [ ! -z "$NODENAME" ] && ! grep "couchdb@" /couchdb/etc/vm.args; then
-	echo "-name couchdb@$NODENAME" >> /couchdb/etc/vm.args
+chmod 664 $couchdb_base/etc/*.ini
+chmod 664 $couchdb_base/etc/local.d/*.ini
+chmod 775 $couchdb_base/etc/*.d
+
+if [ ! -z "$NODENAME" ] && ! grep "couchdb@" "${couchdb_base}/etc/vm.args"; then
+	echo "-name couchdb@$NODENAME" >> "${couchdb_base}/etc/vm.args"
 fi
 
 if [ "$COUCHDB_USER" ] && [ "$COUCHDB_PASSWORD" ]; then
 	# Create admin
-	printf "[admins]\n%s = %s\n" "$COUCHDB_USER" "$COUCHDB_PASSWORD" > /couchdb/etc/local.d/docker.ini
-	chown couchdb:couchdb /couchdb/etc/local.d/docker.ini
+	printf "[admins]\n%s = %s\n" "$COUCHDB_USER" "$COUCHDB_PASSWORD" > "${couchdb_base}/etc/local.d/docker.ini"
+	chown couchdb:couchdb "${couchdb_base}/etc/local.d/docker.ini"
 fi
 
 if [ "$COUCHDB_SECRET" ]; then
 	# Set secret
-	printf "[couch_httpd_auth]\nsecret = %s\n" "$COUCHDB_SECRET" >> /couchdb/etc/local.d/docker.ini
-	chown couchdb:couchdb /couchdb/etc/local.d/docker.ini
+	printf "[couch_httpd_auth]\nsecret = %s\n" "$COUCHDB_SECRET" >> "${couchdb_base}/etc/local.d/docker.ini"
+	chown couchdb:couchdb "${couchdb_base}/etc/local.d/docker.ini"
 fi
 
 # if we don't find an [admins] section followed by a non-comment, display a warning
-if ! grep -Pzoqr '\[admins\]\n[^;]\w+' /couchdb/etc/local.d/*.ini; then
+if ! grep -Pzoqr '\[admins\]\n[^;]\w+' "${couchdb_base}/etc/local.d/*.ini"; then
 	# The - option suppresses leading tabs but *not* spaces. :)
 	cat >&2 <<-'EOWARN'
 		****************************************************

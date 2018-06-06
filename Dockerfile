@@ -11,13 +11,11 @@
 # the License.
 
 # critical package deps preventing update: openjdk-7-jdk, libnspr4-0d, libwxgtk2.8-0, libicu52
-FROM ubuntu:14.04
+FROM apache/couchdb:2.1.1
 
 ENV MAVEN_VERSION 3.5.2
 ENV DEBIAN_FRONTEND noninteractive
 ENV MAVEN_HOME /usr/share/maven
-
-RUN groupadd -r couchdb && useradd -d /couchdb -g couchdb couchdb
 
 RUN apt-get update -y \
   && apt-get install -y apt-utils \
@@ -41,37 +39,16 @@ RUN apt-get update -y \
   wget \
   libicu52 \
   python-sphinx \
-  libwxgtk2.8-0 \
   openjdk-7-jdk \
   procps
-
-RUN wget -nv  http://packages.erlang-solutions.com/erlang/esl-erlang/FLAVOUR_1_general/esl-erlang_18.1-1~ubuntu~precise_amd64.deb
-RUN dpkg -i esl-erlang_18.1-1~ubuntu~precise_amd64.deb
 
 # install maven
 RUN curl -fsSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz | tar xzf - -C /usr/share \
   && mv /usr/share/apache-maven-$MAVEN_VERSION /usr/share/maven \
   && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
 
-# install nodejs
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
-  && apt-get install -y nodejs \
-  && npm install -g grunt-cli
-
-# get couchdb source
-RUN mkdir /usr/src/couchdb && cd /usr/src/couchdb \
-  && git clone https://github.com/neutrinity/couchdb . \
-  && git checkout 2d100fc8e0df613c71406d3a2d7d5932658c5c8a
-
-# compile and install couchdb
-RUN cd /usr/src/couchdb \
-  && ./configure -c --disable-docs \
-  && make release \
-  && mv /usr/src/couchdb/rel/couchdb /couchdb
-
-
 # get, compile and install clouseau
-RUN mkdir /clouseau && chown -R couchdb:couchdb /clouseau /couchdb
+RUN mkdir /clouseau && chown -R couchdb:couchdb /clouseau /opt/couchdb
 
 USER couchdb
 RUN cd /clouseau \
@@ -90,28 +67,19 @@ RUN apt-get purge -y --auto-remove apt-transport-https \
   make \
   && rm -rf /var/lib/apt/lists/* /usr/src/couchdb*
 
-COPY ./config/local.ini /couchdb/etc/local.d/
-COPY ./config/vm.args /couchdb/etc/
-RUN chown -R couchdb:couchdb /couchdb/etc/local.d/ /couchdb/etc/vm.args
+COPY ./config/local.ini /opt/couchdb/etc/default.d/10-docker-default.ini
+COPY ./config/vm.args /opt/couchdb/etc/
+RUN chown -R couchdb:couchdb /opt/couchdb/etc/local.d/ /opt/couchdb/etc/vm.args
 
-RUN mkdir /couchdb/data
-VOLUME ["/couchdb/data"]
-
-EXPOSE 5984
-
-WORKDIR /couchdb
-
-COPY ./start-couchdb /couchdb/
-RUN chmod +x /couchdb/start-couchdb
-COPY ./start-clouseau /couchdb/
-RUN chmod +x /couchdb/start-clouseau
+COPY ./start-couchdb /opt/couchdb/
+RUN chmod +x /opt/couchdb/start-couchdb
+COPY ./start-clouseau /opt/couchdb/
+RUN chmod +x /opt/couchdb/start-clouseau
 
 # Setup directories and permissions
-RUN chown -R couchdb:couchdb /couchdb
-
-USER couchdb
+RUN chown -R couchdb:couchdb /opt/couchdb
 
 RUN mkdir /clouseau/target/clouseau1
 VOLUME ["/clouseau/target/clouseau1"]
 
-ENTRYPOINT ["/couchdb/start-couchdb"]
+ENTRYPOINT ["/opt/couchdb/start-couchdb"]

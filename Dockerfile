@@ -16,8 +16,10 @@ FROM ubuntu:14.04
 ENV MAVEN_VERSION 3.5.2
 ENV DEBIAN_FRONTEND noninteractive
 ENV MAVEN_HOME /usr/share/maven
+ENV COUCHDB_PATH /couchdb
+ENV CLOUSEAU_PATH /clouseau
 
-RUN groupadd -r couchdb && useradd -d /couchdb -g couchdb couchdb
+RUN groupadd -r couchdb && useradd -d $COUCHDB_PATH -g couchdb couchdb
 
 RUN apt-get update -y \
   && apt-get install -y apt-utils \
@@ -61,24 +63,19 @@ RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
 # get couchdb source
 RUN mkdir /usr/src/couchdb && cd /usr/src/couchdb \
   && git clone https://github.com/neutrinity/couchdb . \
-  && git checkout 2d100fc8e0df613c71406d3a2d7d5932658c5c8a
-
-# compile and install couchdb
-RUN cd /usr/src/couchdb \
+  && git checkout 2d100fc8e0df613c71406d3a2d7d5932658c5c8a \
   && ./configure -c --disable-docs \
   && make release \
-  && mv /usr/src/couchdb/rel/couchdb /couchdb
+  && mv /usr/src/couchdb/rel/couchdb "$COUCHDB_PATH" \
+  && chown -R couchdb:couchdb "$COUCHDB_PATH"
 
 
 # get, compile and install clouseau
-RUN mkdir /clouseau && chown -R couchdb:couchdb /clouseau /couchdb
-
-USER couchdb
-RUN cd /clouseau \
+RUN mkdir $CLOUSEAU_PATH \
+  && chown -R couchdb:couchdb $CLOUSEAU_PATH \
+  && cd $CLOUSEAU_PATH \
   && git clone https://github.com/neutrinity/clouseau . \
   && mvn -D maven.test.skip=true install
-
-USER root
 
 # Cleanup build detritus
 RUN apt-get purge -y --auto-remove apt-transport-https \
@@ -88,30 +85,28 @@ RUN apt-get purge -y --auto-remove apt-transport-https \
   libicu-dev \
   libmozjs185-dev \
   make \
+  wget \
   && rm -rf /var/lib/apt/lists/* /usr/src/couchdb*
 
-COPY ./config/local.ini /couchdb/etc/local.d/
-COPY ./config/vm.args /couchdb/etc/
-RUN chown -R couchdb:couchdb /couchdb/etc/local.d/ /couchdb/etc/vm.args
+COPY ./config/local.ini "$COUCHDB_PATH/etc/local.d/"
+COPY ./config/vm.args "$COUCHDB_PATH/etc/"
+RUN chown -R couchdb:couchdb "$COUCHDB_PATH/etc/local.d/" "$COUCHDB_PATH/etc/vm.args"
 
-RUN mkdir /couchdb/data
-VOLUME ["/couchdb/data"]
+RUN mkdir "$COUCHDB_PATH/data"
+VOLUME ["$COUCHDB_PATH/data"]
 
 EXPOSE 5984
 
-WORKDIR /couchdb
+WORKDIR $COUCHDB_PATH
 
-COPY ./start-couchdb /couchdb/
-RUN chmod +x /couchdb/start-couchdb
-COPY ./start-clouseau /couchdb/
-RUN chmod +x /couchdb/start-clouseau
+COPY ./start-couchdb $COUCHDB_PATH
+COPY ./start-clouseau $COUCHDB_PATH
 
 # Setup directories and permissions
-RUN chown -R couchdb:couchdb /couchdb
+RUN chmod +x start-couchdb && chmod +x start-clouseau && chown -R couchdb:couchdb $COUCHDB_PATH
+
+RUN mkdir -p "$CLOUSEAU_PATH/target/clouseau1"
+VOLUME ["$CLOUSEAU_PATH/target/clouseau1"]
 
 USER couchdb
-
-RUN mkdir /clouseau/target/clouseau1
-VOLUME ["/clouseau/target/clouseau1"]
-
 ENTRYPOINT ["/couchdb/start-couchdb"]

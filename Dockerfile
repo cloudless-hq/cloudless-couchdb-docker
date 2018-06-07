@@ -17,14 +17,12 @@ ENV MAVEN_HOME /usr/share/maven
 RUN curl -fsSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz | tar xzf - -C /usr/share \
   && mv "/usr/share/apache-maven-${MAVEN_VERSION}" /usr/share/maven
 
-# critical package deps preventing update: openjdk-7-jdk, libnspr4-0d, libicu52
-FROM erlang:18
-ENV MAVEN_HOME /usr/share/maven
-ENV COUCHDB_PATH /couchdb
-ENV CLOUSEAU_PATH /clouseau
-COPY --from=ntr-base /usr/share/maven /usr/share/maven
-RUN ln -s /usr/share/maven/bin/mvn /usr/bin/mvn && ls -l /usr/bin/mvn
-RUN groupadd -r couchdb && useradd -d $COUCHDB_PATH -g couchdb couchdb
+# lean node setup to be re-used later
+FROM ntr-base as ntr-node
+RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
+  && apt-get -qq install -y nodejs
+
+FROM erlang:18 as ntr-couchdb
 RUN apt-get -qq update -y \
   && apt-get -qq install -y apt-utils \
   && apt-get -qq install -y --no-install-recommends \
@@ -46,24 +44,48 @@ RUN apt-get -qq update -y \
   pkg-config \
   wget \
   libicu52 \
-  python-sphinx \
-  openjdk-7-jdk \
   procps
 
-# install nodejs
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
-  && apt-get install -y nodejs \
-  && npm set progress=false \
-  && npm install -g grunt-cli
+  && apt-get -qq install -y nodejs \
+  && npm set progress=false && npm install -g grunt-cli
 
 # get couchdb source
 RUN mkdir /usr/src/couchdb && cd /usr/src/couchdb \
   && git clone https://github.com/neutrinity/couchdb . \
   && git checkout 2d100fc8e0df613c71406d3a2d7d5932658c5c8a \
   && ./configure -c --disable-docs \
-  && make release \
-  && mv /usr/src/couchdb/rel/couchdb "$COUCHDB_PATH" \
-  && chown -R couchdb:couchdb "$COUCHDB_PATH"
+  && make release
+
+# critical package deps preventing update: openjdk-7-jdk, libnspr4-0d, libicu52
+FROM erlang:18 as ntr-couch-clouseau
+ENV MAVEN_HOME /usr/share/maven
+ENV COUCHDB_PATH /couchdb
+ENV CLOUSEAU_PATH /clouseau
+
+# setup maven
+COPY --from=ntr-base /usr/share/maven /usr/share/maven
+RUN ln -s /usr/share/maven/bin/mvn /usr/bin/mvn && ls -l /usr/bin/mvn
+
+# finish couchdb
+RUN groupadd -r couchdb && useradd -d $COUCHDB_PATH -g couchdb couchdb
+RUN apt-get -qq update -y \
+  && apt-get -qq install -y apt-utils \
+  && apt-get -qq install -y --no-install-recommends \
+  python \
+  build-essential \
+  apt-transport-https \
+  libnspr4 libnspr4-0d \
+  openssl \
+  curl \
+  ca-certificates \
+  git \
+  pkg-config \
+  openjdk-7-jdk \
+  procps
+
+COPY --from=ntr-couchdb /usr/src/couchdb/rel/couchdb "$COUCHDB_PATH"
+RUN ls -l "$COUCHDB_PATH" && chown -R couchdb:couchdb "$COUCHDB_PATH"
 
 # get, compile and install clouseau
 RUN mkdir $CLOUSEAU_PATH \
@@ -72,16 +94,9 @@ RUN mkdir $CLOUSEAU_PATH \
   && git clone https://github.com/neutrinity/clouseau . \
   && mvn -D maven.test.skip=true install
 
-# Cleanup build detritus
-RUN apt-get purge -y --auto-remove apt-transport-https \
-  gcc \
-  g++ \
-  libcurl4-openssl-dev \
-  libicu-dev \
-  libmozjs185-dev \
-  make \
-  wget \
-  && rm -rf /var/lib/apt/lists/* /usr/src/couchdb*
+# FIXME: this is for clouseau's start-script
+RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
+  && apt-get -qq install -y nodejs
 
 COPY ./config/local.ini "$COUCHDB_PATH/etc/local.d/"
 COPY ./config/vm.args "$COUCHDB_PATH/etc/"

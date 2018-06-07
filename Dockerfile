@@ -10,20 +10,24 @@
 # License for the specific language governing permissions and limitations under
 # the License.
 
-# critical package deps preventing update: openjdk-7-jdk, libnspr4-0d, libwxgtk2.8-0, libicu52
-FROM ubuntu:14.04
-
+FROM buildpack-deps:jessie as ntr-base
 ENV MAVEN_VERSION 3.5.2
-ENV DEBIAN_FRONTEND noninteractive
+ENV MAVEN_HOME /usr/share/maven
+# install maven
+RUN curl -fsSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz | tar xzf - -C /usr/share \
+  && mv "/usr/share/apache-maven-${MAVEN_VERSION}" /usr/share/maven
+
+# critical package deps preventing update: openjdk-7-jdk, libnspr4-0d, libicu52
+FROM erlang:18
 ENV MAVEN_HOME /usr/share/maven
 ENV COUCHDB_PATH /couchdb
 ENV CLOUSEAU_PATH /clouseau
-
+COPY --from=ntr-base /usr/share/maven /usr/share/maven
+RUN ln -s /usr/share/maven/bin/mvn /usr/bin/mvn && ls -l /usr/bin/mvn
 RUN groupadd -r couchdb && useradd -d $COUCHDB_PATH -g couchdb couchdb
-
-RUN apt-get update -y \
-  && apt-get install -y apt-utils \
-  && apt-get install -y --no-install-recommends \
+RUN apt-get -qq update -y \
+  && apt-get -qq install -y apt-utils \
+  && apt-get -qq install -y --no-install-recommends \
   python \
   build-essential \
   apt-transport-https \
@@ -43,21 +47,13 @@ RUN apt-get update -y \
   wget \
   libicu52 \
   python-sphinx \
-  libwxgtk2.8-0 \
   openjdk-7-jdk \
   procps
-
-RUN wget -nv  http://packages.erlang-solutions.com/erlang/esl-erlang/FLAVOUR_1_general/esl-erlang_18.1-1~ubuntu~precise_amd64.deb
-RUN dpkg -i esl-erlang_18.1-1~ubuntu~precise_amd64.deb
-
-# install maven
-RUN curl -fsSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz | tar xzf - -C /usr/share \
-  && mv /usr/share/apache-maven-$MAVEN_VERSION /usr/share/maven \
-  && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
 
 # install nodejs
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
   && apt-get install -y nodejs \
+  && npm set progress=false \
   && npm install -g grunt-cli
 
 # get couchdb source
@@ -68,7 +64,6 @@ RUN mkdir /usr/src/couchdb && cd /usr/src/couchdb \
   && make release \
   && mv /usr/src/couchdb/rel/couchdb "$COUCHDB_PATH" \
   && chown -R couchdb:couchdb "$COUCHDB_PATH"
-
 
 # get, compile and install clouseau
 RUN mkdir $CLOUSEAU_PATH \

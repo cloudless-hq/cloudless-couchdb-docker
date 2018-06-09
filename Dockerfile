@@ -53,7 +53,10 @@ RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
 # get couchdb source
 RUN mkdir /usr/src/couchdb && cd /usr/src/couchdb \
   && git clone https://github.com/neutrinity/couchdb . \
-  && git checkout 2d100fc8e0df613c71406d3a2d7d5932658c5c8a \
+  && git checkout 350f5919685c82e821bb69110fd21fa4d7e101b9
+
+# compile and install couchdb
+RUN cd /usr/src/couchdb \
   && ./configure -c --disable-docs \
   && make release
 
@@ -87,12 +90,25 @@ RUN apt-get -qq update -y \
 COPY --from=ntr-couchdb /usr/src/couchdb/rel/couchdb "$COUCHDB_PATH"
 RUN ls -l "$COUCHDB_PATH" && chown -R couchdb:couchdb "$COUCHDB_PATH"
 
-# get, compile and install clouseau
-RUN mkdir $CLOUSEAU_PATH \
-  && chown -R couchdb:couchdb $CLOUSEAU_PATH \
-  && cd $CLOUSEAU_PATH \
-  && git clone https://github.com/neutrinity/clouseau . \
-  && mvn -D maven.test.skip=true install
+# Install project dependencies and keep sources
+# make source folder
+RUN mkdir /clouseau_deps $CLOUSEAU_PATH
+
+# install maven dependency packages (keep in image)
+RUN cd clouseau_deps \
+&& wget https://raw.githubusercontent.com/neutrinity/clouseau/ntr_master/pom.xml \
+&& curl https://raw.githubusercontent.com/neutrinity/clouseau/ntr_master/src/main/assembly/distribution.xml --create-dirs -o src/main/assembly/distribution.xml \
+&& mvn -T 1C install -Dmaven.test.skip=true
+
+# now we can add all source code and start compiling
+RUN cd /clouseau \
+  && git clone -b ntr_master https://github.com/neutrinity/clouseau . \
+  && cp -RT /clouseau_deps/ "${CLOUSEAU_PATH}/" && rm -r /clouseau_deps
+
+RUN chown -R couchdb:couchdb $CLOUSEAU_PATH /couchdb
+
+# TODO tests need to get unskipped
+RUN  cd /clouseau && mvn verify -Dmaven.test.skip=true
 
 # FIXME: this is for clouseau's start-script
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \

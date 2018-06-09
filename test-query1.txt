@@ -1,0 +1,9 @@
+{
+   "selector": {
+      "$text": "hihi"
+   },
+   "fields": [
+      "text"
+   ],
+   "limit": 100
+}

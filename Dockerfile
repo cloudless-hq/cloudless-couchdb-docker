@@ -40,12 +40,11 @@ RUN apt-get update -y \
   pkg-config \
   wget \
   libicu52 \
-  python-sphinx \
   libwxgtk2.8-0 \
   openjdk-7-jdk \
   procps
 
-RUN wget -nv  http://packages.erlang-solutions.com/erlang/esl-erlang/FLAVOUR_1_general/esl-erlang_18.1-1~ubuntu~precise_amd64.deb
+RUN wget -nv http://packages.erlang-solutions.com/erlang/esl-erlang/FLAVOUR_1_general/esl-erlang_18.1-1~ubuntu~precise_amd64.deb
 RUN dpkg -i esl-erlang_18.1-1~ubuntu~precise_amd64.deb
 
 # install maven
@@ -69,14 +68,26 @@ RUN cd /usr/src/couchdb \
   && make release \
   && mv /usr/src/couchdb/rel/couchdb /couchdb
 
+# Install project dependencies and keep sources
+# make source folder
+RUN mkdir /clouseau_deps /clouseau
 
-# get, compile and install clouseau
-RUN mkdir /clouseau && chown -R couchdb:couchdb /clouseau /couchdb
+# install maven dependency packages (keep in image)
+RUN cd clouseau_deps \
+&& wget https://raw.githubusercontent.com/neutrinity/clouseau/ntr_master/pom.xml \
+&& curl https://raw.githubusercontent.com/neutrinity/clouseau/ntr_master/src/main/assembly/distribution.xml --create-dirs -o src/main/assembly/distribution.xml \
+&& mvn -T 1C install -Dmaven.test.skip=true
 
-USER couchdb
+# now we can add all source code and start compiling
 RUN cd /clouseau \
-  && git clone https://github.com/neutrinity/clouseau . \
-  && mvn -D maven.test.skip=true install
+  && git clone -b ntr_master https://github.com/neutrinity/clouseau . \
+  && cp -RT /clouseau_deps/ /clouseau/ && rm -r /clouseau_deps
+
+RUN chown -R couchdb:couchdb /clouseau /couchdb
+USER couchdb
+
+# TODO tests need to get unskipped
+RUN  cd /clouseau && mvn verify -Dmaven.test.skip=true
 
 USER root
 
@@ -111,7 +122,7 @@ RUN chown -R couchdb:couchdb /couchdb
 
 USER couchdb
 
-RUN mkdir /clouseau/target/clouseau1
+RUN mkdir -p /clouseau/target/clouseau1
 VOLUME ["/clouseau/target/clouseau1"]
 
 ENTRYPOINT ["/couchdb/start-couchdb"]

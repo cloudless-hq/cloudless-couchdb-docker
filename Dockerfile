@@ -40,7 +40,6 @@ RUN apt-get update -y \
   pkg-config \
   wget \
   libicu52 \
-  python-sphinx \
   libwxgtk2.8-0 \
   openjdk-7-jdk \
   procps
@@ -75,13 +74,13 @@ RUN mkdir /clouseau_deps /clouseau
 
 # install maven dependency packages (keep in image)
 RUN cd clouseau_deps \
-&& wget https://raw.githubusercontent.com/neutrinity/clouseau/master/pom.xml \
-&& curl https://raw.githubusercontent.com/neutrinity/clouseau/master/src/main/assembly/distribution.xml --create-dirs -o src/main/assembly/distribution.xml \
+&& wget https://raw.githubusercontent.com/neutrinity/clouseau/ntr_master/pom.xml \
+&& curl https://raw.githubusercontent.com/neutrinity/clouseau/ntr_master/src/main/assembly/distribution.xml --create-dirs -o src/main/assembly/distribution.xml \
 && mvn -T 1C install -Dmaven.test.skip=true
 
 # now we can add all source code and start compiling
 RUN cd /clouseau \
-  && git clone https://github.com/neutrinity/clouseau . \
+  && git clone -b ntr_master https://github.com/neutrinity/clouseau . \
   && cp -RT /clouseau_deps/ /clouseau/ && rm -r /clouseau_deps
 
 RUN chown -R couchdb:couchdb /clouseau /couchdb

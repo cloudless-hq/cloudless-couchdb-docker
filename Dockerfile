@@ -60,7 +60,7 @@ RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
 # get couchdb source
 RUN mkdir /usr/src/couchdb && cd /usr/src/couchdb \
   && git clone https://github.com/neutrinity/couchdb . \
-  && git checkout 2d100fc8e0df613c71406d3a2d7d5932658c5c8a
+  && git checkout 350f5919685c82e821bb69110fd21fa4d7e101b9
 
 # compile and install couchdb
 RUN cd /usr/src/couchdb \

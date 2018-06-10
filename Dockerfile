@@ -18,9 +18,9 @@ RUN curl -fsSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binar
   && mv "/usr/share/apache-maven-${MAVEN_VERSION}" /usr/share/maven
 
 # lean node setup to be re-used later
-FROM ntr-base as ntr-node
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
-  && apt-get -qq install -y nodejs
+# FROM ntr-base as ntr-node
+# RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
+#  && apt-get -qq install -y nodejs
 
 FROM erlang:18 as ntr-couchdb
 RUN apt-get -qq update -y \

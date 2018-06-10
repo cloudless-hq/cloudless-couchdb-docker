@@ -10,18 +10,22 @@
 # License for the specific language governing permissions and limitations under
 # the License.
 
+# --- Stage1: Get Maven ---
 FROM buildpack-deps:jessie as ntr-base
 ENV MAVEN_VERSION 3.5.2
 ENV MAVEN_HOME /usr/share/maven
 # install maven
 RUN curl -fsSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz | tar xzf - -C /usr/share \
   && mv "/usr/share/apache-maven-${MAVEN_VERSION}" /usr/share/maven
+# -> used artifacts: /usr/share/maven
+
 
 # lean node setup to be re-used later
 # FROM ntr-base as ntr-node
 # RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
 #  && apt-get -qq install -y nodejs
 
+# --- Stage2: Get and build Couchdb ---
 FROM erlang:18-slim as ntr-couchdb
 RUN apt-get -qq update -y \
   && apt-get -qq install -y apt-utils \
@@ -58,8 +62,10 @@ RUN mkdir /usr/src/couchdb && cd /usr/src/couchdb \
 RUN cd /usr/src/couchdb \
   && ./configure -c --disable-docs \
   && make release
+# -> Used Artifacts: /usr/src/couchdb/rel/couchdb
 
-# critical package deps preventing update: openjdk-7-jdk, libnspr4-0d, libicu52
+
+# --- Stage3: Build Final Image ---
 FROM erlang:18-slim as ntr-couch-clouseau
 ENV MAVEN_HOME /usr/share/maven
 ENV COUCHDB_PATH /opt/couchdb
@@ -134,5 +140,5 @@ RUN chmod +x start-couchdb && chmod +x start-clouseau && chown -R couchdb:couchd
 RUN mkdir -p "$CLOUSEAU_PATH/target/clouseau1"
 VOLUME ["$CLOUSEAU_PATH/target/clouseau1"]
 
-#USER couchdb
+# TODO: USER couchdb
 ENTRYPOINT ["./start-couchdb"]

@@ -84,6 +84,7 @@ RUN apt-get -qq update -y \
   git \
   pkg-config \
   openjdk-7-jdk \
+  libicu52 \
   procps
 
 COPY --from=ntr-couchdb /usr/src/couchdb/rel/couchdb "$COUCHDB_PATH"

@@ -63,8 +63,8 @@ RUN cd /usr/src/couchdb \
 # critical package deps preventing update: openjdk-7-jdk, libnspr4-0d, libicu52
 FROM erlang:18 as ntr-couch-clouseau
 ENV MAVEN_HOME /usr/share/maven
-ENV COUCHDB_PATH /couchdb
-ENV CLOUSEAU_PATH /clouseau
+ENV COUCHDB_PATH /opt/couchdb
+ENV CLOUSEAU_PATH /opt/clouseau
 
 # setup maven
 COPY --from=ntr-base /usr/share/maven /usr/share/maven
@@ -105,10 +105,10 @@ RUN cd /clouseau \
   && git clone -b ntr_master https://github.com/neutrinity/clouseau . \
   && cp -RT /clouseau_deps/ "${CLOUSEAU_PATH}/" && rm -r /clouseau_deps
 
-RUN chown -R couchdb:couchdb $CLOUSEAU_PATH /couchdb
+RUN chown -R couchdb:couchdb $CLOUSEAU_PATH $COUCHDB_PATH
 
 # TODO tests need to get unskipped
-RUN  cd /clouseau && mvn verify -Dmaven.test.skip=true
+RUN  cd $CLOUSEAU_PATH && mvn verify -Dmaven.test.skip=true
 
 # FIXME: this is for clouseau's start-script
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
@@ -135,4 +135,4 @@ RUN mkdir -p "$CLOUSEAU_PATH/target/clouseau1"
 VOLUME ["$CLOUSEAU_PATH/target/clouseau1"]
 
 USER couchdb
-ENTRYPOINT ["/couchdb/start-couchdb"]
+ENTRYPOINT ["${COUCHDB_PATH}/start-couchdb"]

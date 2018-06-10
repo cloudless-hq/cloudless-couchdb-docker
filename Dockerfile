@@ -133,5 +133,5 @@ RUN chmod +x start-couchdb && chmod +x start-clouseau && chown -R couchdb:couchd
 RUN mkdir -p "$CLOUSEAU_PATH/target/clouseau1"
 VOLUME ["$CLOUSEAU_PATH/target/clouseau1"]
 
-USER couchdb
+#USER couchdb
 ENTRYPOINT ["./start-couchdb"]

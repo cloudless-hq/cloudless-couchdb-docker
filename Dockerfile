@@ -22,7 +22,7 @@ RUN curl -fsSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binar
 # RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
 #  && apt-get -qq install -y nodejs
 
-FROM erlang:18 as ntr-couchdb
+FROM erlang:18-slim as ntr-couchdb
 RUN apt-get -qq update -y \
   && apt-get -qq install -y apt-utils \
   && apt-get -qq install -y --no-install-recommends \
@@ -61,7 +61,7 @@ RUN cd /usr/src/couchdb \
   && make release
 
 # critical package deps preventing update: openjdk-7-jdk, libnspr4-0d, libicu52
-FROM erlang:18 as ntr-couch-clouseau
+FROM erlang:18-slim as ntr-couch-clouseau
 ENV MAVEN_HOME /usr/share/maven
 ENV COUCHDB_PATH /opt/couchdb
 ENV CLOUSEAU_PATH /opt/clouseau

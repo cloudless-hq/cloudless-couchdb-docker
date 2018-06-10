@@ -100,7 +100,7 @@ RUN cd clouseau_deps \
 && mvn -T 1C install -Dmaven.test.skip=true
 
 # now we can add all source code and start compiling
-RUN cd /clouseau \
+RUN cd $CLOUSEAU_PATH \
   && git clone -b ntr_master https://github.com/neutrinity/clouseau . \
   && cp -RT /clouseau_deps/ "${CLOUSEAU_PATH}/" && rm -r /clouseau_deps
 
@@ -134,4 +134,4 @@ RUN mkdir -p "$CLOUSEAU_PATH/target/clouseau1"
 VOLUME ["$CLOUSEAU_PATH/target/clouseau1"]
 
 USER couchdb
-ENTRYPOINT ["${COUCHDB_PATH}/start-couchdb"]
+ENTRYPOINT ["./start-couchdb"]

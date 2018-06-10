@@ -42,7 +42,6 @@ RUN apt-get -qq update -y \
   ca-certificates \
   git \
   pkg-config \
-  wget \
   libicu52 \
   procps
 
@@ -96,7 +95,7 @@ RUN mkdir /clouseau_deps $CLOUSEAU_PATH
 
 # install maven dependency packages (keep in image)
 RUN cd clouseau_deps \
-&& wget https://raw.githubusercontent.com/neutrinity/clouseau/ntr_master/pom.xml \
+&& curl https://raw.githubusercontent.com/neutrinity/clouseau/ntr_master/pom.xml -o pom.xml \
 && curl https://raw.githubusercontent.com/neutrinity/clouseau/ntr_master/src/main/assembly/distribution.xml --create-dirs -o src/main/assembly/distribution.xml \
 && mvn -T 1C install -Dmaven.test.skip=true
 

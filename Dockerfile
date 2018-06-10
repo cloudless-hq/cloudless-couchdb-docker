@@ -10,18 +10,22 @@
 # License for the specific language governing permissions and limitations under
 # the License.
 
-# critical package deps preventing update: openjdk-7-jdk, libnspr4-0d, libwxgtk2.8-0, libicu52
-FROM ubuntu:14.04
-
+FROM buildpack-deps:jessie as ntr-base
 ENV MAVEN_VERSION 3.5.2
-ENV DEBIAN_FRONTEND noninteractive
 ENV MAVEN_HOME /usr/share/maven
+# install maven
+RUN curl -fsSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz | tar xzf - -C /usr/share \
+  && mv "/usr/share/apache-maven-${MAVEN_VERSION}" /usr/share/maven
 
-RUN groupadd -r couchdb && useradd -d /couchdb -g couchdb couchdb
+# lean node setup to be re-used later
+# FROM ntr-base as ntr-node
+# RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
+#  && apt-get -qq install -y nodejs
 
-RUN apt-get update -y \
-  && apt-get install -y apt-utils \
-  && apt-get install -y --no-install-recommends \
+FROM erlang:18-slim as ntr-couchdb
+RUN apt-get -qq update -y \
+  && apt-get -qq install -y apt-utils \
+  && apt-get -qq install -y --no-install-recommends \
   python \
   build-essential \
   apt-transport-https \
@@ -38,24 +42,12 @@ RUN apt-get update -y \
   ca-certificates \
   git \
   pkg-config \
-  wget \
   libicu52 \
-  libwxgtk2.8-0 \
-  openjdk-7-jdk \
   procps
 
-RUN wget -nv http://packages.erlang-solutions.com/erlang/esl-erlang/FLAVOUR_1_general/esl-erlang_18.1-1~ubuntu~precise_amd64.deb
-RUN dpkg -i esl-erlang_18.1-1~ubuntu~precise_amd64.deb
-
-# install maven
-RUN curl -fsSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz | tar xzf - -C /usr/share \
-  && mv /usr/share/apache-maven-$MAVEN_VERSION /usr/share/maven \
-  && ln -s /usr/share/maven/bin/mvn /usr/bin/mvn
-
-# install nodejs
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
-  && apt-get install -y nodejs \
-  && npm install -g grunt-cli
+  && apt-get -qq install -y nodejs \
+  && npm set progress=false && npm install -g grunt-cli
 
 # get couchdb source
 RUN mkdir /usr/src/couchdb && cd /usr/src/couchdb \
@@ -65,64 +57,82 @@ RUN mkdir /usr/src/couchdb && cd /usr/src/couchdb \
 # compile and install couchdb
 RUN cd /usr/src/couchdb \
   && ./configure -c --disable-docs \
-  && make release \
-  && mv /usr/src/couchdb/rel/couchdb /couchdb
+  && make release
+
+# critical package deps preventing update: openjdk-7-jdk, libnspr4-0d, libicu52
+FROM erlang:18-slim as ntr-couch-clouseau
+ENV MAVEN_HOME /usr/share/maven
+ENV COUCHDB_PATH /opt/couchdb
+ENV CLOUSEAU_PATH /opt/clouseau
+
+# setup maven
+COPY --from=ntr-base /usr/share/maven /usr/share/maven
+RUN ln -s /usr/share/maven/bin/mvn /usr/bin/mvn && ls -l /usr/bin/mvn
+
+# finish couchdb
+RUN groupadd -r couchdb && useradd -d $COUCHDB_PATH -g couchdb couchdb
+RUN apt-get -qq update -y \
+  && apt-get -qq install -y apt-utils \
+  && apt-get -qq install -y --no-install-recommends \
+  python \
+  build-essential \
+  apt-transport-https \
+  libnspr4 libnspr4-0d \
+  openssl \
+  curl \
+  ca-certificates \
+  git \
+  pkg-config \
+  openjdk-7-jdk \
+  libicu52 \
+  procps
+
+COPY --from=ntr-couchdb /usr/src/couchdb/rel/couchdb "$COUCHDB_PATH"
+RUN ls -l "$COUCHDB_PATH" && chown -R couchdb:couchdb "$COUCHDB_PATH"
 
 # Install project dependencies and keep sources
 # make source folder
-RUN mkdir /clouseau_deps /clouseau
+RUN mkdir /clouseau_deps $CLOUSEAU_PATH
 
 # install maven dependency packages (keep in image)
 RUN cd clouseau_deps \
-&& wget https://raw.githubusercontent.com/neutrinity/clouseau/ntr_master/pom.xml \
+&& curl https://raw.githubusercontent.com/neutrinity/clouseau/ntr_master/pom.xml -o pom.xml \
 && curl https://raw.githubusercontent.com/neutrinity/clouseau/ntr_master/src/main/assembly/distribution.xml --create-dirs -o src/main/assembly/distribution.xml \
 && mvn -T 1C install -Dmaven.test.skip=true
 
 # now we can add all source code and start compiling
-RUN cd /clouseau \
+RUN cd $CLOUSEAU_PATH \
   && git clone -b ntr_master https://github.com/neutrinity/clouseau . \
-  && cp -RT /clouseau_deps/ /clouseau/ && rm -r /clouseau_deps
+  && cp -RT /clouseau_deps/ "${CLOUSEAU_PATH}/" && rm -r /clouseau_deps
 
-RUN chown -R couchdb:couchdb /clouseau /couchdb
-USER couchdb
+RUN chown -R couchdb:couchdb $CLOUSEAU_PATH $COUCHDB_PATH
 
 # TODO tests need to get unskipped
-RUN  cd /clouseau && mvn verify -Dmaven.test.skip=true
+RUN  cd $CLOUSEAU_PATH && mvn verify -Dmaven.test.skip=true
 
-USER root
+# FIXME: this is for clouseau's start-script
+RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
+  && apt-get -qq install -y nodejs
 
-# Cleanup build detritus
-RUN apt-get purge -y --auto-remove apt-transport-https \
-  gcc \
-  g++ \
-  libcurl4-openssl-dev \
-  libicu-dev \
-  libmozjs185-dev \
-  make \
-  && rm -rf /var/lib/apt/lists/* /usr/src/couchdb*
+COPY ./config/local.ini "$COUCHDB_PATH/etc/local.d/"
+COPY ./config/vm.args "$COUCHDB_PATH/etc/"
+RUN chown -R couchdb:couchdb "$COUCHDB_PATH/etc/local.d/" "$COUCHDB_PATH/etc/vm.args"
 
-COPY ./config/local.ini /couchdb/etc/local.d/
-COPY ./config/vm.args /couchdb/etc/
-RUN chown -R couchdb:couchdb /couchdb/etc/local.d/ /couchdb/etc/vm.args
-
-RUN mkdir /couchdb/data
-VOLUME ["/couchdb/data"]
+RUN mkdir "$COUCHDB_PATH/data"
+VOLUME ["$COUCHDB_PATH/data"]
 
 EXPOSE 5984
 
-WORKDIR /couchdb
+WORKDIR $COUCHDB_PATH
 
-COPY ./start-couchdb /couchdb/
-RUN chmod +x /couchdb/start-couchdb
-COPY ./start-clouseau /couchdb/
-RUN chmod +x /couchdb/start-clouseau
+COPY ./start-couchdb $COUCHDB_PATH
+COPY ./start-clouseau $COUCHDB_PATH
 
 # Setup directories and permissions
-RUN chown -R couchdb:couchdb /couchdb
+RUN chmod +x start-couchdb && chmod +x start-clouseau && chown -R couchdb:couchdb $COUCHDB_PATH
 
-USER couchdb
+RUN mkdir -p "$CLOUSEAU_PATH/target/clouseau1"
+VOLUME ["$CLOUSEAU_PATH/target/clouseau1"]
 
-RUN mkdir -p /clouseau/target/clouseau1
-VOLUME ["/clouseau/target/clouseau1"]
-
-ENTRYPOINT ["/couchdb/start-couchdb"]
+#USER couchdb
+ENTRYPOINT ["./start-couchdb"]

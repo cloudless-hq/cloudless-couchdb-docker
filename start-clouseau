@@ -16,7 +16,7 @@ const { spawn } = require('child_process')
 
 process.stdout.write('["log", "Clouseau starting...", {"level": "info"}]\n')
 
-const clouseauProcess = spawn('mvn', ['scala:run', '-DaddArgs=""|clouseau.name=clouseau1@127.0.0.1|clouseau.cookie=monster|clouseau.dir=target/indexes'], { cwd: '/clouseau', shell: false })
+const clouseauProcess = spawn('mvn', ['scala:run', '-DaddArgs=""|clouseau.name=clouseau1@127.0.0.1|clouseau.cookie=monster|clouseau.dir=target/indexes'], { cwd: '/opt/clouseau', shell: false })
 
 function bufferToCleanStr (string) {
   return string.toString().replace(/"|\\|\n|\r/g, '').replace(/\[INFO\]|\[ERROR\]|\[WARNING\]/g, '')

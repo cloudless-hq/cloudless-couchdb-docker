@@ -1,0 +1,13 @@
+{
+  "ddoc": "mango-index",
+  "index": {
+    "fields": [
+      {
+        "name": "text",
+        "type": "string"
+      }
+    ]
+  },
+  "name": "test-index",
+  "type": "text"
+}

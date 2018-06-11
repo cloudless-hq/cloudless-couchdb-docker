@@ -1,0 +1,8 @@
+{
+  "_id": "one",
+  "text": "hihi",
+  "test": {
+    "a": ["sdfsdfsdf"]
+  },
+  "time": 1
+}

@@ -15,9 +15,18 @@ Build the CouchDB image from the Dockerfile and run using the following:
 
 ```
 $ docker-compose up
-
 ```
 
 There will be a Fauxton console available at http://localhost:5984/_utils
 
 Full text searching is enabled and fully functional.  See the Cloudant [documentation](https://cloudant.com/for-developers/search/) for more info on how to test use the full text searching capabilities.
+
+## Run tests
+
+**Please note:** This expects a working setup running on `127.0.0.1:5984`.
+
+Execute tests and watch output:
+
+```
+$ make test
+```

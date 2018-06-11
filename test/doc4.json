@@ -1,0 +1,8 @@
+{
+  "_id": "four",
+  "text": "no match",
+  "test": {
+    "a": ["nothing match"]
+  },
+  "time": 1
+}

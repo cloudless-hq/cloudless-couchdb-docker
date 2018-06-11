@@ -14,9 +14,21 @@
 
 const { spawn } = require('child_process')
 
+// FIXME: these should be env variables
+var clouseau_name = 'clouseau1@clouseau.local';
+var erlang_cookie= 'monster';
+var clouseau_path = '/opt/clouseau';
+
 process.stdout.write('["log", "Clouseau starting...", {"level": "info"}]\n')
 
-const clouseauProcess = spawn('mvn', ['scala:run', '-DaddArgs=""|clouseau.name=clouseau1@127.0.0.1|clouseau.cookie=monster|clouseau.dir=target/indexes'], { cwd: '/opt/clouseau', shell: false })
+const clouseauProcess = spawn(
+	'mvn',
+	[
+		'scala:run',
+		'-DaddArgs=""|clouseau.name=' + clouseau_name + '|clouseau.cookie=' + erlang_cookie + '|clouseau.dir=target/indexes'
+    ],
+    { cwd: clouseau_path, shell: false }
+)
 
 function bufferToCleanStr (string) {
   return string.toString().replace(/"|\\|\n|\r/g, '').replace(/\[INFO\]|\[ERROR\]|\[WARNING\]/g, '')

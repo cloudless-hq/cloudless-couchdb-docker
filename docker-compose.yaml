@@ -24,11 +24,11 @@ services:
       - 5986:5986
       - 15984:15984
     env_file: dev.env
-    networks:
-      - ntr
+    #networks:
+    #  - ntr
     volumes:
-      - './data/couchdb/:/couchdb/data/'
-      - './data/clouseau/:/clouseau/target/clouseau1/'
-networks:
-  ntr:
-    external: true
+      - './data/couchdb/:/opt/couchdb/data/'
+      - './data/clouseau/:/opt/clouseau/target/clouseau1/'
+#networks:
+#  ntr:
+#    external: true

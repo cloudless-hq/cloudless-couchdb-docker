@@ -1,6 +1,6 @@
 .PHONY : clean setup run-tests
 
-couchdb := http://till:till@127.0.0.1:5984
+couchdb := http://jan:password@127.0.0.1:5984
 db := test-database
 endpoint := $(couchdb)/$(db)
 dir := $(shell pwd)
@@ -21,7 +21,6 @@ setup:
 	$(curl_post) -d @$(dir)/test/doc3.json $(endpoint)
 	$(curl_post) -d @$(dir)/test/doc4.json $(endpoint)
 	@echo "Creating index (Mango)"
-	$(curl_post) -d '{"_id":"_design/mango-index"}' $(endpoint)
 	$(curl_post) -d @$(dir)/test/test-index1.txt $(endpoint)/_index
 
 run-tests:

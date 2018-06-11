@@ -1,5 +1,4 @@
 {
-  "ddoc": "mango-index",
   "index": {
     "fields": [
       {

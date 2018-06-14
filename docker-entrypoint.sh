@@ -23,9 +23,10 @@ if [ "$1" = 'couchdb' ]; then
   chmod 664 $COUCHDB_PATH/etc/local.d/*.ini
   chmod 775 $COUCHDB_PATH/etc/*.d
 
-  if [ ! -z "$NODE_NAME" ] && ! grep "couchdb@" $COUCHDB_PATH/etc/vm.args; then
-    echo "-name $NODE_NAME" >> $COUCHDB_PATH/etc/vm.args
-  fi
+  echo "Setting up vm.args"
+  cat $COUCHDB_PATH/etc/vm.args-dist > $COUCHDB_PATH/etc/vm.args
+  echo "-setcookie '${ERLANG_COOKIE}'" >> $COUCHDB_PATH/etc/vm.args
+  echo "-name ${NODE_NAME}" >> $COUCHDB_PATH/etc/vm.args
 
   if [ "$COUCHDB_USER" ] && [ "$COUCHDB_PASSWORD" ]; then
     # Create admin

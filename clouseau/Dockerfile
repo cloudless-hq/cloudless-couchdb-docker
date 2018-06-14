@@ -11,12 +11,13 @@ RUN curl -fsSL http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binar
 FROM erlang:18-slim as ntr-clouseau
 ENV MAVEN_HOME /usr/share/maven
 ENV CLOUSEAU_PATH /opt/clouseau
+ENV INDEX_DIR /index
 
 # setup maven
-COPY --from=ntr-base /usr/share/maven /usr/share/maven
+COPY --from=ntr-base /usr/share/maven $MAVEN_HOME
 RUN ln -s /usr/share/maven/bin/mvn /usr/bin/mvn && ls -l /usr/bin/mvn
 
-# finish couchdb
+# finish clouseau
 RUN groupadd -r couchdb && useradd -d $CLOUSEAU_PATH -g couchdb couchdb
 RUN apt-get -qq update -y \
   && apt-get -qq install -y apt-utils \
@@ -50,18 +51,20 @@ RUN cd $CLOUSEAU_PATH \
 RUN  cd $CLOUSEAU_PATH && mvn verify -Dmaven.test.skip=true
 
 # FIXME: this is for clouseau's start-script
-RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
-  && apt-get -qq install -y nodejs
+#RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
+#  && apt-get -qq install -y nodejs
 
 WORKDIR $CLOUSEAU_PATH
 
-COPY ./start-clouseau $CLOUSEAU_PATH
+COPY ./docker-entrypoint.sh $CLOUSEAU_PATH
 
 # Setup directories and permissions
-RUN chmod +x start-clouseau && chown -R couchdb:couchdb $CLOUSEAU_PATH
+RUN touch clouseau.ini \
+  && chmod +x docker-entrypoint.sh \
+  && chown -R couchdb:couchdb $CLOUSEAU_PATH
 
-RUN mkdir -p "$CLOUSEAU_PATH/target/clouseau1"
-VOLUME ["$CLOUSEAU_PATH/target/clouseau1"]
+RUN mkdir -p "$INDEX_DIR"
+VOLUME ["$INDEX_DIR"]
 
-# TODO: USER couchdb
-ENTRYPOINT ["./start-clouseau"]
+ENTRYPOINT ["./docker-entrypoint.sh"]
+CMD ["clouseau"]

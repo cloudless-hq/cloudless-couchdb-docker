@@ -27,8 +27,13 @@ services:
     build:
       context: .
       dockerfile: ./clouseau/Dockerfile
+    environment:
+      - INDEX_DIR=/index
+      - ERLANG_COOKIE=monster
+      - NODE_NAME=clouseau1
+      - BIND_ADDRESS=clouseau.local
     volumes:
-      - './data/clouseau/:/opt/clouseau/target/clouseau1/'
+      - './data/clouseau/:/index'
     depends_on:
       - couchdb.local
 #networks:

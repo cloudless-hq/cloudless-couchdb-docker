@@ -82,10 +82,12 @@ EXPOSE 5984
 
 WORKDIR $COUCHDB_PATH
 
-COPY ./start-couchdb $COUCHDB_PATH
+COPY ./docker-entrypoint.sh $COUCHDB_PATH
 
 # Setup directories and permissions
-RUN chmod +x start-couchdb && chown -R couchdb:couchdb $COUCHDB_PATH
+RUN chmod +x docker-entrypoint.sh \
+  && chown -R couchdb:couchdb $COUCHDB_PATH
 
 # TODO: USER couchdb
-ENTRYPOINT ["./start-couchdb"]
+ENTRYPOINT ["./docker-entrypoint.sh"]
+CMD ["couchdb"]

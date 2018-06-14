@@ -27,5 +27,4 @@
 # Comment this line out to enable the interactive Erlang shell on startup
 +Bd -noinput
 
--setcookie 'monster'
--name couchdb@127.0.0.1
+# CONFIGURATION

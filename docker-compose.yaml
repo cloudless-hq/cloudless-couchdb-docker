@@ -12,23 +12,29 @@
 
 version: '3'
 services:
-  couchdb:
-    image: "ntr-couch"
+  couchdb.local:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: ./couchdb/Dockerfile
     ports:
       - 5984:5984
-      - 4369:4369
-      - 9100:9100
-      - 5986:5986
-      - 15984:15984
     env_file: dev.env
     #networks:
     #  - ntr
     volumes:
       - './data/couchdb/:/opt/couchdb/data/'
-      - './data/clouseau/:/opt/clouseau/target/clouseau1/'
+  clouseau.local:
+    build:
+      context: .
+      dockerfile: ./clouseau/Dockerfile
+    environment:
+      - INDEX_DIR=/index
+      - ERLANG_COOKIE=monster
+      - NODE_NAME=clouseau1@clouseau.local
+    volumes:
+      - './data/clouseau/:/index'
+    depends_on:
+      - couchdb.local
 #networks:
 #  ntr:
 #    external: true

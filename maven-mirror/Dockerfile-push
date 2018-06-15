@@ -1,0 +1,12 @@
+FROM ruby:2.3.7-alpine
+
+ADD ./maven-mirror/push-it /usr/bin
+
+RUN apk add --no-cache build-base \
+  && gem install --no-ri --no-rdoc package_cloud \
+  && mkdir /maven_repo \
+  && chmod +x /usr/bin/push-it
+
+VOLUME ["/maven_repo"]
+
+CMD ["push-it"]

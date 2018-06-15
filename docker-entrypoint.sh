@@ -28,16 +28,20 @@ if [ "$1" = 'couchdb' ]; then
   echo "-setcookie '${ERLANG_COOKIE}'" >> $COUCHDB_PATH/etc/vm.args
   echo "-name ${NODE_NAME}" >> $COUCHDB_PATH/etc/vm.args
 
+  echo "Setting up dreyfus/clouseau"
+  echo "[dreyfus]" > $COUCHDB_PATH/etc/local.d/00-dreyfus.ini
+  echo "name = ${CLOUSEAU_NAME}" >> $COUCHDB_PATH/etc/local.d/00-dreyfus.ini
+
   if [ "$COUCHDB_USER" ] && [ "$COUCHDB_PASSWORD" ]; then
     # Create admin
-    printf "[admins]\n%s = %s\n" "$COUCHDB_USER" "$COUCHDB_PASSWORD" > $COUCHDB_PATH/etc/local.d/docker.ini
-    chown couchdb:couchdb $COUCHDB_PATH/etc/local.d/docker.ini
+    printf "[admins]\n%s = %s\n" "$COUCHDB_USER" "$COUCHDB_PASSWORD" > $COUCHDB_PATH/etc/local.d/02-docker.ini
+    chown couchdb:couchdb $COUCHDB_PATH/etc/local.d/02-docker.ini
   fi
 
   if [ "$COUCHDB_SECRET" ]; then
     # Set secret
-    printf "[couch_httpd_auth]\nsecret = %s\n" "$COUCHDB_SECRET" >> $COUCHDB_PATH/etc/local.d/docker.ini
-    chown couchdb:couchdb $COUCHDB_PATH/etc/local.d/docker.ini
+    printf "[couch_httpd_auth]\nsecret = %s\n" "$COUCHDB_SECRET" >> $COUCHDB_PATH/etc/local.d/02-docker.ini
+    chown couchdb:couchdb $COUCHDB_PATH/etc/local.d/02-docker.ini
   fi
 
   # if we don't find an [admins] section followed by a non-comment, display a warning

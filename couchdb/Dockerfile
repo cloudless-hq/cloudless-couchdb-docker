@@ -72,7 +72,7 @@ RUN apt-get -qq update -y \
 COPY --from=ntr-couchdb-build /usr/src/couchdb/rel/couchdb "$COUCHDB_PATH"
 RUN ls -l "$COUCHDB_PATH" && chown -R couchdb:couchdb "$COUCHDB_PATH"
 
-COPY ./couchdb/local.ini "$COUCHDB_PATH/etc/local.d/"
+COPY ./couchdb/local.ini "$COUCHDB_PATH/etc/local.d/01-local.ini"
 COPY ./couchdb/vm.args "$COUCHDB_PATH/etc/vm.args-dist"
 
 RUN mkdir "$COUCHDB_PATH/data"

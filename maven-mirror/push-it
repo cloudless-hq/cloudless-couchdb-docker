@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+
+# This is written in Ruby, because we want to use packagecloud cli. But who cares!
+require 'json'
+require 'find'
+
+# setup token
+config = {
+  :url => "https://packagecloud.io",
+  :token => ENV['PACKAGECLOUD_TOKEN']
+}
+File.open("/root/.packagecloud", "w") do |f|
+  f.write(config.to_json)
+end
+
+# find jars that we need to push
+jar_file_paths = []
+Find.find('/maven_repo') do |path|
+  jar_file_paths << path if path =~ /.*\.jar$/
+end
+
+jar_file_paths.each do |jar|
+  next if jar.include?('-javadoc.jar') # filter per packagecloud
+  next if jar.include?('-sources.jar')
+
+  meta = File.dirname(jar).gsub('/maven_repo/repo/', '').split('/')
+
+  version = meta.pop
+  name = meta.pop
+  org = meta.join('.')
+
+  push_cmd = sprintf(
+    'packagecloud push %s %s --coordinates=%s:%s:%s --skip-errors',
+    ENV['REPOSITORY'],
+    jar,
+    org,
+    name,
+    version
+  )
+
+  puts "About to push next page: #{name} (v: #{version}):\n"
+  system(push_cmd)
+end

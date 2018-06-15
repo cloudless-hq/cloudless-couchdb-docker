@@ -1,0 +1,3 @@
+#!/bin/sh
+
+wget -P$MIRROR_DIR -r -nH -np --reject html $MAVEN_REPO

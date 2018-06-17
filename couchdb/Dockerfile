@@ -10,16 +10,11 @@
 # License for the specific language governing permissions and limitations under
 # the License.
 
-# lean node setup to be re-used later
-# FROM ntr-base as ntr-node
-# RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
-#  && apt-get -qq install -y nodejs
-
 # --- Stage1: Get and build Couchdb ---
 FROM erlang:18-slim as ntr-couchdb-build
 RUN apt-get -qq update -y \
-  && apt-get -qq install -y apt-utils \
-  && apt-get -qq install -y --no-install-recommends \
+  && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y apt-utils \
+  && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y --no-install-recommends \
   python \
   build-essential \
   apt-transport-https \
@@ -40,17 +35,18 @@ RUN apt-get -qq update -y \
   procps
 
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
-  && apt-get -qq install -y nodejs \
-  && npm set progress=false && npm install -g grunt-cli
+  && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y nodejs \
+  && npm set progress=false && npm install -g grunt-cli@1.2.0 \
+  && mkdir -p /usr/src/couchdb
+
+WORKDIR /usr/src/couchdb
 
 # get couchdb source
-RUN mkdir /usr/src/couchdb && cd /usr/src/couchdb \
-  && git clone https://github.com/neutrinity/couchdb . \
+RUN git clone https://github.com/neutrinity/couchdb . \
   && git checkout 350f5919685c82e821bb69110fd21fa4d7e101b9
 
 # compile and install couchdb
-RUN cd /usr/src/couchdb \
-  && ./configure -c --disable-docs \
+RUN ./configure -c --disable-docs \
   && make release
 # -> Used Artifacts: /usr/src/couchdb/rel/couchdb
 
@@ -60,17 +56,20 @@ FROM erlang:18-slim as ntr-couch-clouseau
 ENV COUCHDB_PATH /opt/couchdb
 
 # finish couchdb
-RUN groupadd -r couchdb && useradd -d $COUCHDB_PATH -g couchdb couchdb
+RUN groupadd -r couchdb && useradd -d "$COUCHDB_PATH" -g couchdb couchdb
 RUN apt-get -qq update -y \
-  && apt-get -qq install -y apt-utils \
-  && apt-get -qq install -y --no-install-recommends \
+  && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y apt-utils \
+  && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y --no-install-recommends \
   libnspr4 libnspr4-0d \
   openssl \
   libicu52 \
-  procps
+  procps \
+  && rm -rf /var/lib/apt/lists/*
 
 COPY --from=ntr-couchdb-build /usr/src/couchdb/rel/couchdb "$COUCHDB_PATH"
 RUN ls -l "$COUCHDB_PATH" && chown -R couchdb:couchdb "$COUCHDB_PATH"
+
+WORKDIR $COUCHDB_PATH
 
 COPY ./couchdb/local.ini "$COUCHDB_PATH/etc/local.d/01-local.ini"
 COPY ./couchdb/vm.args "$COUCHDB_PATH/etc/vm.args-dist"
@@ -86,7 +85,7 @@ COPY ./docker-entrypoint.sh $COUCHDB_PATH
 
 # Setup directories and permissions
 RUN chmod +x docker-entrypoint.sh \
-  && chown -R couchdb:couchdb $COUCHDB_PATH
+  && chown -R couchdb:couchdb "$COUCHDB_PATH"
 
 # TODO: USER couchdb
 ENTRYPOINT ["./docker-entrypoint.sh"]

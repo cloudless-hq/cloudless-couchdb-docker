@@ -6,6 +6,7 @@ endpoint := $(couchdb)/$(db)
 dir := $(shell pwd)/test
 curl_post := @curl -X POST -H "Content-Type: application/json"
 curl_put := @curl -X PUT -H "Content-Type: application/json"
+hadolint := docker run --rm -i hadolint/hadolint hadolint
 
 clean:
 	@echo "Deleting $(db)"
@@ -30,5 +31,11 @@ run-tests:
 	$(curl_post) -d @$(dir)/test-query1.txt $(endpoint)/_find
 	@echo "Query 2"
 	$(curl_post) -d @$(dir)/test-query2.txt $(endpoint)/_find
+
+docker-lint:
+	$(hadolint) --ignore DL3008 --ignore DL3015 - < ./couchdb/Dockerfile
+	$(hadolint) --ignore DL3008 --ignore DL3015 - < ./clouseau/Dockerfile
+	$(hadolint) - < ./maven-mirror/Dockerfile-mirror
+	$(hadolint) - < ./maven-mirror/Dockerfile-push
 
 test: clean setup run-tests

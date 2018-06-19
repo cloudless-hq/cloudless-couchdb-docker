@@ -18,7 +18,7 @@ COPY --from=ntr-base /usr/share/maven $MAVEN_HOME
 RUN ln -s /usr/share/maven/bin/mvn /usr/bin/mvn && ls -l /usr/bin/mvn
 
 # finish clouseau
-RUN groupadd -r couchdb && useradd -d "$CLOUSEAU_PATH" -g couchdb couchdb
+RUN groupadd -r clouseau && useradd -d "$CLOUSEAU_PATH" -g clouseau clouseau
 RUN apt-get -qq update -y \
   && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y apt-utils \
   && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y --no-install-recommends \
@@ -57,10 +57,11 @@ COPY ./docker-entrypoint.sh $CLOUSEAU_PATH
 # Setup directories and permissions
 RUN touch clouseau.ini \
   && chmod +x docker-entrypoint.sh \
-  && chown -R couchdb:couchdb "$CLOUSEAU_PATH"
+  && chown -R clouseau:clouseau "$CLOUSEAU_PATH"
 
 RUN mkdir -p "$INDEX_DIR"
 VOLUME ["$INDEX_DIR"]
 
+USER clouseau
 ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["clouseau"]

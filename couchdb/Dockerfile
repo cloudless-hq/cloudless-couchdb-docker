@@ -87,6 +87,6 @@ COPY ./docker-entrypoint.sh $COUCHDB_PATH
 RUN chmod +x docker-entrypoint.sh \
   && chown -R couchdb:couchdb "$COUCHDB_PATH"
 
-# TODO: USER couchdb
+USER couchdb
 ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["couchdb"]

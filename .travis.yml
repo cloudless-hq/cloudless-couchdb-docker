@@ -5,3 +5,9 @@ services:
 
 script:
   - make docker-lint
+
+deploy:
+  provider: script
+  script: bash ./.travis/publish.sh
+  on:
+    branch: master

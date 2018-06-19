@@ -4,5 +4,4 @@ services:
   - docker
 
 script:
-  - docker run --rm -i hadolint/hadolint hadolint --ignore DL3008 --ignore DL3015 - < ./couchdb/Dockerfile
-  - docker run --rm -i hadolint/hadolint hadolint --ignore DL3008 --ignore DL3015 - < ./clouseau/Dockerfile
+  - make docker-lint

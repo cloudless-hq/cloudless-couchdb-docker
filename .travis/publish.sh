@@ -14,11 +14,11 @@ for docker_file in "${files[@]}"
 do
   case "$docker_file" in
     clouseau/Dockerfile)
-      docker_image="${hub_org}/test-clouseau"
+      docker_image="${hub_org}/clouseau"
       docker_version="2.10.0-SNAPSHOT-g$(git rev-parse --short HEAD)"
       ;;
     couchdb/Dockerfile)
-      docker_image="${hub_org}/test-couchdb"
+      docker_image="${hub_org}/couchdb"
       docker_version="2.1.1-350f591-g$(git rev-parse --short HEAD)"
       ;;
     maven-mirror/Dockerfile-mirror)

@@ -3,7 +3,7 @@
 echo "Hello ladies and gentlemen! We're about to do an automated release to Docker Hub."
 echo ""
 
-declare -a files=("clouseau/Dockerfile" "couchdb/Dockerfile")
+declare -a files=("clouseau/Dockerfile" "couchdb/Dockerfile" "maven-mirror/Dockerfile-mirror" "maven-mirror/Dockerfile-push")
 
 base_path="$(pwd)"
 hub_org="cloudlesshq"
@@ -21,18 +21,27 @@ do
     couchdb/Dockerfile)
       docker_image="${hub_org}/couchdb"
       docker_version="2.1.1-350f591-g$(git rev-parse --short HEAD)"
-      build_path="${base_path}/${docker_file}"
+      ;;
+    maven-mirror/Dockerfile-mirror)
+      docker_image="${hub_org}/maven-mirror"
+      docker_version=$(git rev-parse --short HEAD)
+      ;;
+    maven-mirror/Dockerfile-push)
+      docker_image="${hub_org}/maven-push"
+      docker_version=$(git rev-parse --short HEAD)
       ;;
     *)
       echo "Unknown file: ${docker_file}"
       exit 1
   esac
 
+  build_path="${base_path}/${docker_file}"
+
   echo ""
   echo "Pushing ${docker_image}:${docker_version} (and :latest)"
   echo "Path: ${build_path}"
 
-  docker build -t ${docker_image}:latest -t ${docker_image}:${docker_version} -f "${build_path}" . \
+  docker build --quiet -t ${docker_image}:latest -t ${docker_image}:${docker_version} -f "${build_path}" . \
     && docker push $docker_image:$docker_version \
     && docker push $docker_image:latest
 done

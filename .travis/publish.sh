@@ -36,13 +36,16 @@ do
 
   build_path="${base_path}/${docker_file}"
 
+  version_latest="${docker_image}:latest"
+  version_rel="${docker_image}:${docker_version}"
+
   echo ""
-  echo "Pushing ${docker_image}:${docker_version} (and :latest)"
+  echo "Pushing ${version_rel} (and :latest)"
   echo "Path: ${build_path}"
 
-  docker build --quiet -t ${docker_image}:latest -t ${docker_image}:${docker_version} -f "${build_path}" . \
-    && docker push $docker_image:$docker_version \
-    && docker push $docker_image:latest
+  docker build --quiet -t $version_latest -t $version_rel -f "${build_path}" . \
+    && docker push $version_rel \
+    && docker push $version_latest
 done
 
 exit 0

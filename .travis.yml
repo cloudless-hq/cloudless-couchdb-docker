@@ -3,6 +3,9 @@ sudo: required
 services:
   - docker
 
+install:
+  - echo "Hello, we're good."
+
 script:
   - make docker-lint
 

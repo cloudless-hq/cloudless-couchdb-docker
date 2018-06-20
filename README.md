@@ -30,3 +30,9 @@ Execute tests and watch output:
 ```
 $ make test
 ```
+
+For CI, please see:
+
+```
+$ make docker-lint
+```

@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+echo "Hello ladies and gentlemen! We're about to do an automated release to Docker Hub."
+echo ""
+
 declare -a files=("clouseau/Dockerfile" "couchdb/Dockerfile")
 
 base_path="$(pwd)"
@@ -12,7 +15,7 @@ do
   case "$docker_file" in
     clouseau/Dockerfile)
       docker_image="${hub_org}/test-clouseau"
-      docker_version="1.0-SNAPSHOT-g$(git rev-parse --short HEAD)"
+      docker_version="2.10.0-SNAPSHOT-g$(git rev-parse --short HEAD)"
       build_path="${base_path}/clouseau"
       ;;
     couchdb/Dockerfile)
@@ -33,3 +36,5 @@ do
     && docker push $docker_image:$docker_version \
     && docker push $docker_image:latest
 done
+
+exit 0

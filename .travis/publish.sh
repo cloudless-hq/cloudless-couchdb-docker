@@ -16,12 +16,12 @@ do
     clouseau/Dockerfile)
       docker_image="${hub_org}/test-clouseau"
       docker_version="2.10.0-SNAPSHOT-g$(git rev-parse --short HEAD)"
-      build_path="${base_path}/clouseau"
+      build_path="${base_path}/${docker_file}"
       ;;
     couchdb/Dockerfile)
       docker_image="${hub_org}/test-couchdb"
       docker_version="2.1.1-350f591-g$(git rev-parse --short HEAD)"
-      build_path="${base_path}/couchdb"
+      build_path="${base_path}/${docker_file}"
       ;;
     *)
       echo "Unknown file: ${docker_file}"
@@ -32,7 +32,7 @@ do
   echo "Pushing ${docker_image}:${docker_version} (and :latest)"
   echo "Path: ${build_path}"
 
-  docker build -t ${docker_image}:latest -t ${docker_image}:${docker_version} -f "${build_path}/Dockerfile" . \
+  docker build -t ${docker_image}:latest -t ${docker_image}:${docker_version} -f "${build_path}" . \
     && docker push $docker_image:$docker_version \
     && docker push $docker_image:latest
 done

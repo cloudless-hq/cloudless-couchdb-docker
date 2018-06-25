@@ -20,16 +20,19 @@ fi
 if [ "$1" = 'couchdb' ]; then
   chown -R couchdb:couchdb $COUCHDB_PATH
 
+  mkdir -p $COUCHDB_PATH/etc/local.d
+
   chmod -R 0770 $COUCHDB_PATH/data
 
   chmod 664 $COUCHDB_PATH/etc/*.ini
-  chmod 664 $COUCHDB_PATH/etc/local.d/*.ini
+  chmod 664 $COUCHDB_PATH/etc/default.d/*.ini
+  chmod 644 $COUCHDB_PATH/etc/local.d
   chmod 775 $COUCHDB_PATH/etc/*.d
 
   echo "Setting up vm.args"
   cat $COUCHDB_PATH/etc/vm.args-dist > $COUCHDB_PATH/etc/vm.args
   echo "-setcookie '${ERLANG_COOKIE}'" >> $COUCHDB_PATH/etc/vm.args
-  echo "-name ${NODE_NAME}" >> $COUCHDB_PATH/etc/vm.args
+  echo "-name ${NODENAME}" >> $COUCHDB_PATH/etc/vm.args
 
   echo "Setting up dreyfus/clouseau"
   echo "[dreyfus]" > $COUCHDB_PATH/etc/local.d/00-dreyfus.ini

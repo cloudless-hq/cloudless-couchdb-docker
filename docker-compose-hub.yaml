@@ -17,7 +17,7 @@ services:
     ports:
       - 5984:5984
     environment:
-      - NODE_NAME=couchdb@couchdb.local
+      - NODENAME=couchdb@couchdb.local
       - ERLANG_COOKIE=cookie_monster
       - COUCHDB_USER=jan
       - COUCHDB_PASSWORD=password
@@ -29,7 +29,7 @@ services:
     environment:
       - INDEX_DIR=/index
       - ERLANG_COOKIE=cookie_monster
-      - NODE_NAME=clouseau@clouseau.local
+      - NODENAME=clouseau@clouseau.local
     volumes:
       - './data/clouseau/:/index'
     depends_on:

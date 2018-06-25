@@ -1,5 +1,6 @@
-data/clouseau
-data/couchdb
-data/maven-repo
+.compose/data/clouseau
+.compose/data/couchdb
+.compose/data/maven-repo
+.compose/etc/couchdb
 .DS_Store
 data-bk

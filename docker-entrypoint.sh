@@ -18,20 +18,20 @@ if [ "$1" = 'clouseau' ]; then
 fi
 
 if [ "$1" = 'couchdb' ]; then
-  chown -R couchdb:couchdb $COUCHDB_PATH
+  #chown -R couchdb:couchdb $COUCHDB_PATH
 
   mkdir -p $COUCHDB_PATH/etc/local.d
 
-  chmod -R 0770 $COUCHDB_PATH/data
+  #chmod -R 0770 $COUCHDB_PATH/data
 
   etc_dir="${COUCHDB_PATH}/etc"
   default_dir="${etc_dir}/default.d"
   local_dir="${etc_dir}/local.d"
 
-  chmod 664 $etc_dir/*.ini
-  chmod 664 $default_dir/*.ini
-  chmod 644 $etc_dir/local.d
-  chmod 775 $etc_dir/*.d
+  #chmod 664 $etc_dir/*.ini
+  #chmod 664 $default_dir/*.ini
+  #chmod 644 $etc_dir/local.d
+  #chmod 775 $etc_dir/*.d
 
   echo "Setting up vm.args"
   cat $etc_dir/vm.args-dist > $etc_dir/vm.args
@@ -45,13 +45,13 @@ if [ "$1" = 'couchdb' ]; then
   if [ "$COUCHDB_USER" ] && [ "$COUCHDB_PASSWORD" ]; then
     # Create admin
     printf "[admins]\n%s = %s\n" "$COUCHDB_USER" "$COUCHDB_PASSWORD" > $local_dir/02-docker.ini
-    chown couchdb:couchdb $local_dir/02-docker.ini
+    #chown couchdb:couchdb $local_dir/02-docker.ini
   fi
 
   if [ "$COUCHDB_SECRET" ]; then
     # Set secret
     printf "[couch_httpd_auth]\nsecret = %s\n" "$COUCHDB_SECRET" >> $local_dir/02-docker.ini
-    chown couchdb:couchdb $local_dir/02-docker.ini
+    #chown couchdb:couchdb $local_dir/02-docker.ini
   fi
 
   # if we don't find an [admins] section followed by a non-comment, display a warning

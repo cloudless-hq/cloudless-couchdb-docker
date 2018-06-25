@@ -77,7 +77,7 @@ COPY ./couchdb/vm.args "$COUCHDB_PATH/etc/vm.args-dist"
 RUN mkdir "$COUCHDB_PATH/data"
 VOLUME ["$COUCHDB_PATH/data"]
 
-EXPOSE 5984
+EXPOSE 5984 4369 9100
 
 WORKDIR $COUCHDB_PATH
 

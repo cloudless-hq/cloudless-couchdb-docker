@@ -1,7 +1,11 @@
 couchdb:
-  enabled: true
   clusterSize: 2
+  enabled: true
   image:
-    pullPolicy: Always
+    pullPolicy: Never
     repository: couchdb-test
     tag: latest
+  ingress:
+    enabled: true
+    hosts:
+      - cloudless-couchdb.local

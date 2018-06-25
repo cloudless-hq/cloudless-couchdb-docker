@@ -23,7 +23,8 @@ services:
       - COUCHDB_PASSWORD=password
       - CLOUSEAU_NAME=clouseau.local
     volumes:
-      - './data/couchdb/:/opt/couchdb/data/'
+      - './.compose/data/couchdb/:/opt/couchdb/data/'
+      - './.compose/etc/couchdb/:/opt/couchdb/etc/local.d'
   clouseau.local:
     image: cloudlesshq/clouseau:latest
     environment:
@@ -31,6 +32,6 @@ services:
       - ERLANG_COOKIE=cookie_monster
       - NODENAME=clouseau@clouseau.local
     volumes:
-      - './data/clouseau/:/index'
+      - './.compose/data/clouseau/:/index'
     depends_on:
       - couchdb.local

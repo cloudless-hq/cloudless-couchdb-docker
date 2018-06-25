@@ -16,7 +16,7 @@ services:
       context: .
       dockerfile: ./maven-mirror/Dockerfile-mirror
     volumes:
-      - './data/maven-repo:/maven_repo'
+      - './.compose/data/maven-repo:/maven_repo'
   push-maven:
     environment:
       - REPOSITORY=till/cloudant-clouseau/java
@@ -25,4 +25,4 @@ services:
       context: .
       dockerfile: ./maven-mirror/Dockerfile-push
     volumes:
-      - './data/maven-repo/:/maven_repo'
+      - './.compose/data/maven-repo/:/maven_repo'

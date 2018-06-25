@@ -27,7 +27,8 @@ services:
     #networks:
     #  - ntr
     volumes:
-      - './data/couchdb/:/opt/couchdb/data/'
+      - './.compose/data/couchdb/:/opt/couchdb/data/'
+      - './.compose/etc/couchdb/:/opt/couchdb/etc/local.d'
   clouseau.local:
     build:
       context: .
@@ -37,7 +38,7 @@ services:
       - ERLANG_COOKIE=cookie_monster
       - NODE_NAME=clouseau.local
     volumes:
-      - './data/clouseau/:/index'
+      - './.compose/data/clouseau/:/index'
     depends_on:
       - couchdb.local
 #networks:

@@ -1,6 +1,11 @@
+# local docker-compose setup for testing outside Kubernetes
 .compose/data/clouseau
 .compose/data/couchdb
 .compose/data/maven-repo
 .compose/etc/couchdb
+
+# local helm setup for minikube
+.helm/cloudless-couchdb/charts/
+
 .DS_Store
 data-bk

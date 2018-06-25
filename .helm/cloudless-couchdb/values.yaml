@@ -1,0 +1,8 @@
+couchdb:
+  enabled: true
+  clusterSize: 2
+  image:
+    pullPolicy: Always
+    repository: cloudlesshq/couchdb
+    version: latest
+    tag: "null"

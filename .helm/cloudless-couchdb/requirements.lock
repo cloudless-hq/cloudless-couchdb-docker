@@ -1,0 +1,6 @@
+dependencies:
+- name: couchdb
+  repository: http://storage.googleapis.com/kubernetes-charts-incubator
+  version: 0.1.6
+digest: sha256:b0c91278b3ee68ff8b6f563ea1f5b8cddf6b7044f03ea41f35404d9c2ec0809d
+generated: 2018-06-25T17:00:19.192244263+02:00

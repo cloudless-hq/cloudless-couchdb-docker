@@ -43,8 +43,10 @@ do
   echo "Pushing ${version_rel} (and :latest)"
   echo "Path: ${build_path}"
 
-  docker build --quiet -t $version_latest -t $version_rel -f "${build_path}" . \
-    && docker push $version_rel \
+  make docker-build image_name="$version_latest" docker_file="${build_path}"
+  make docker-build image_name="$version_rel" docker_file="${build_path}"
+
+  docker push $version_rel \
     && docker push $version_latest
 done
 

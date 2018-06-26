@@ -28,15 +28,17 @@ if [ "$1" = 'couchdb' ]; then
   default_dir="${etc_dir}/default.d"
   local_dir="${etc_dir}/local.d"
 
+  #echo "ETC: ${etc_dir}"
+
   #chmod 664 $etc_dir/*.ini
   #chmod 664 $default_dir/*.ini
   #chmod 644 $etc_dir/local.d
   #chmod 775 $etc_dir/*.d
 
-  echo "Setting up vm.args"
-  cat $etc_dir/vm.args-dist > $etc_dir/vm.args
-  echo "-setcookie '${ERLANG_COOKIE}'" >> $etc_dir/vm.args
-  echo "-name ${NODENAME}" >> $etc_dir/vm.args
+  #echo "Setting up vm.args: ERLANG_COOKIE=${ERLANG_COOKIE}, NODENAME=${NODENAME}"
+  #cat $etc_dir/vm.args-dist > $etc_dir/vm.args
+  #echo "-setcookie '${ERLANG_COOKIE}'" >> $etc_dir/vm.args
+  #echo "-name couchdb@${NODENAME}" >> $etc_dir/vm.args
 
   echo "Setting up dreyfus/clouseau: ${CLOUSEAU_NAME}"
   echo "[dreyfus]" > $local_dir/00-dreyfus.ini

@@ -17,8 +17,7 @@ services:
     ports:
       - 5984:5984
     environment:
-      - NODENAME=couchdb@couchdb.local
-      - ERLANG_COOKIE=cookie_monster
+      - ERL_FLAGS="-name couchdb -setcookie cookie_monster"
       - COUCHDB_USER=jan
       - COUCHDB_PASSWORD=password
       - CLOUSEAU_NAME=clouseau.local

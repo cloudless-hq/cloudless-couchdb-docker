@@ -7,6 +7,33 @@ dir := $(shell pwd)/test
 curl_post := @curl -X POST -H "Content-Type: application/json"
 curl_put := @curl -X PUT -H "Content-Type: application/json"
 hadolint := docker run --rm -i hadolint/hadolint hadolint
+release := couchdb-test-cluster
+
+helm-deploy:
+	@echo "Building images"
+	eval $(minikube docker-env)
+	$(MAKE) docker-build image_name=clouseau-test docker_file=./clouseau/Dockerfile
+	$(MAKE) docker-build image_name=couchdb-test docker_file=./couchdb/Dockerfile
+	@echo "Deploying to Minikube"
+	helm install --name $(release) ./.helm/cloudless-couchdb
+	@echo "Finish cluster setup"
+	kubectl exec -it $(release)-couchdb-0 -c couchdb -- \
+ curl -s \
+ http://127.0.0.1:5984/_cluster_setup \
+ -X POST \
+ -H "Content-Type: application/json" \
+ -d '{"action": "finish_cluster"}' \
+ -u "jan:password"
+
+helm-lint:
+	helm lint ./.helm/cloudless-couchdb
+
+helm-undeploy:
+	@echo "Removing release"
+	helm delete --purge $(release)
+
+helm-upgrade:
+	helm upgrade $(release) ./.helm/cloudless-couchdb
 
 clean:
 	@echo "Deleting $(db)"
@@ -37,5 +64,8 @@ docker-lint:
 	$(hadolint) --ignore DL3008 --ignore DL3015 - < ./clouseau/Dockerfile
 	$(hadolint) - < ./maven-mirror/Dockerfile-mirror
 	$(hadolint) - < ./maven-mirror/Dockerfile-push
+
+docker-build:
+	docker build -t $(image_name) -f $(docker_file) .
 
 test: clean setup run-tests

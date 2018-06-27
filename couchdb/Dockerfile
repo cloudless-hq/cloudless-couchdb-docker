@@ -57,6 +57,7 @@ ENV COUCHDB_PATH /opt/couchdb
 
 # finish couchdb
 RUN groupadd -r couchdb && useradd -d "$COUCHDB_PATH" -g couchdb couchdb
+RUN echo 'deb http://deb.debian.org/debian jessie-backports main' > /etc/apt/sources.list.d/backports.list
 RUN apt-get -qq update -y \
   && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y apt-utils \
   && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y --no-install-recommends \
@@ -64,6 +65,8 @@ RUN apt-get -qq update -y \
   openssl \
   libicu52 \
   procps \
+  curl \
+  gosu \
   && rm -rf /var/lib/apt/lists/*
 
 COPY --from=ntr-couchdb-build /usr/src/couchdb/rel/couchdb "$COUCHDB_PATH"
@@ -72,21 +75,18 @@ RUN ls -l "$COUCHDB_PATH" && chown -R couchdb:couchdb "$COUCHDB_PATH"
 WORKDIR $COUCHDB_PATH
 
 COPY ./couchdb/local.ini "$COUCHDB_PATH/etc/default.d/10-docker-default.ini"
-COPY ./couchdb/vm.args "$COUCHDB_PATH/etc/vm.args-dist"
+COPY ./couchdb/vm.args "$COUCHDB_PATH/etc/"
 
 RUN mkdir "$COUCHDB_PATH/data"
 VOLUME ["$COUCHDB_PATH/data"]
 
 EXPOSE 5984 4369 9100
 
-WORKDIR $COUCHDB_PATH
-
-COPY ./docker-entrypoint.sh $COUCHDB_PATH
+COPY ./couchdb/docker-entrypoint.sh $COUCHDB_PATH
 
 # Setup directories and permissions
 RUN chmod +x docker-entrypoint.sh \
-  && chown -R couchdb:couchdb "$COUCHDB_PATH"
+ && chown -R couchdb:couchdb "$COUCHDB_PATH"
 
-USER couchdb
 ENTRYPOINT ["./docker-entrypoint.sh"]
-CMD ["couchdb"]
+CMD ["/opt/couchdb/bin/couchdb"]

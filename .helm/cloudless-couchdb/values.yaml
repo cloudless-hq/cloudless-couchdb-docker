@@ -1,5 +1,4 @@
-nameOverride: couchdb
-
+## Configure couchdb 'subchart'
 couchdb:
   adminUsername: jan
   adminPassword: password
@@ -17,7 +16,3 @@ couchdb:
     pullPolicy: Never
     repository: couchdb-test
     tag: latest
-  ingress:
-    enabled: true
-    hosts:
-      - cloudless-couchdb.local

@@ -5,7 +5,9 @@
 .compose/etc/couchdb
 
 # local helm setup for minikube
+.helm/charts/
 .helm/cloudless-couchdb/charts/
+.helm/*.tgz
 
 .DS_Store
 data-bk

@@ -1,11 +1,11 @@
 .PHONY : clean setup run-tests
 
-couchdb := http://jan:password@127.0.0.1:5984
+creds := jan:password
+couchdb := http://$(creds)@127.0.0.1:5984
 db := test-database
-endpoint := $(couchdb)/$(db)
 dir := $(shell pwd)/test
-curl_post := @curl -X POST -H "Content-Type: application/json"
-curl_put := @curl -X PUT -H "Content-Type: application/json"
+curl_post := @curl -s -X POST -H "Content-Type: application/json" -u $(creds)
+curl_put := @curl -s -X PUT -H "Content-Type: application/json" -u $(creds)
 hadolint := docker run --rm -i hadolint/hadolint hadolint
 release := couchdb-test-cluster
 
@@ -16,14 +16,30 @@ helm-deploy:
 	$(MAKE) docker-build image_name=couchdb-test docker_file=./couchdb/Dockerfile
 	@echo "Deploying to Minikube"
 	helm install --name $(release) ./.helm/cloudless-couchdb
-	@echo "Finish cluster setup"
-	kubectl exec -it $(release)-couchdb-0 -c couchdb -- \
- curl -s \
- http://127.0.0.1:5984/_cluster_setup \
- -X POST \
- -H "Content-Type: application/json" \
- -d '{"action": "finish_cluster"}' \
- -u "jan:password"
+	@echo "Finish cluster setup by running: make cluster"
+
+cluster:
+	for number in 0 1 2 ; do \
+		kubectl exec -it $(release)-couchdb-$$number -c couchdb -- \
+			curl -s \
+			$(couchdb)/_cluster_setup \
+			-X POST \
+			-H "Content-Type: application/json" \
+			-d '{"action": "finish_cluster"}' \
+			-u "$(creds)" ; \
+	done
+	kubectl expose service $(release)-svc-couchdb --type=LoadBalancer --name=couchdb-public
+	minikube service couchdb-public --url
+
+# in the end this will do the following:
+# 1. confirm configuration we set (so it's applied)
+# 2. confirm membership (count all_nodes vs. cluster_nodes in /_membership)
+cluster-status:
+	for number in 0 1 2 ; do \
+		kubectl exec -it $(release)-couchdb-$$number -c couchdb -- \
+			curl -s $(couchdb)/_node/_local/_config/httpd/bind_address \
+			&& curl -s $(couchdb)/_node/_local/_config/chttpd/bind_address ; \
+	done
 
 helm-lint:
 	helm lint ./.helm/cloudless-couchdb
@@ -31,33 +47,31 @@ helm-lint:
 helm-undeploy:
 	@echo "Removing release"
 	helm delete --purge $(release)
+	kubectl delete service/couchdb-public
 
 helm-upgrade:
 	helm upgrade $(release) ./.helm/cloudless-couchdb
 
 clean:
+	$(eval endpoint := $(shell minikube service couchdb-public --url))
 	@echo "Deleting $(db)"
-	curl -X DELETE $(endpoint)
+	curl -X DELETE -u $(creds) $(endpoint)/$(db)
 
 setup:
-	@echo "Creating database(s)"
-	$(curl_put) $(couchdb)/_users
-	$(curl_put) $(couchdb)/_replicator
-	$(curl_put) $(couchdb)/_global_changes
-	$(curl_put) $(endpoint)
+	$(eval endpoint := $(shell minikube service couchdb-public --url))
+	@echo "Creating database(s) on all nodes of cluster $(endpoint)"
+	$(curl_put) $(endpoint)/$(db)
 	@echo "Populating '$(db)' with test data/fixtures"
-	$(curl_post) -d @$(dir)/doc1.json $(endpoint)
-	$(curl_post) -d @$(dir)/doc2.json $(endpoint)
-	$(curl_post) -d @$(dir)/doc3.json $(endpoint)
-	$(curl_post) -d @$(dir)/doc4.json $(endpoint)
+	$(curl_post) -d @$(dir)/doc1.json $(endpoint)/$(db)
+	$(curl_post) -d @$(dir)/doc2.json $(endpoint)/$(db)
+	$(curl_post) -d @$(dir)/doc3.json $(endpoint)/$(db)
+	$(curl_post) -d @$(dir)/doc4.json $(endpoint)/$(db)
 	@echo "Creating index (Mango)"
-	$(curl_post) -d @$(dir)/test-index1.txt $(endpoint)/_index
+	$(curl_post) -d @$(dir)/test-index1.txt $(endpoint)/$(db)/_index
 
 run-tests:
-	@echo "Query 1"
-	$(curl_post) -d @$(dir)/test-query1.txt $(endpoint)/_find
-	@echo "Query 2"
-	$(curl_post) -d @$(dir)/test-query2.txt $(endpoint)/_find
+	$(eval endpoint := $(shell minikube service couchdb-public --url))
+
 
 docker-lint:
 	$(hadolint) --ignore DL3008 --ignore DL3015 - < ./couchdb/Dockerfile

@@ -1,5 +1,17 @@
+nameOverride: couchdb
+
 couchdb:
-  clusterSize: 2
+  adminUsername: jan
+  adminPassword: password
+  couchdbConfig:
+    chttpd:
+      bind_address: any
+    httpd:
+      bind_address: any
+    log:
+      level: info
+      writer: stdout
+  clusterSize: 3
   enabled: true
   image:
     pullPolicy: Never

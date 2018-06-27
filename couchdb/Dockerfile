@@ -65,7 +65,10 @@ RUN apt-get -qq update -y \
   openssl \
   libicu52 \
   procps \
+  # needed for cluster setup & testing
   curl \
+  jq \
+  # needed to run couchdb
   gosu \
   && rm -rf /var/lib/apt/lists/*
 
@@ -74,7 +77,7 @@ RUN ls -l "$COUCHDB_PATH" && chown -R couchdb:couchdb "$COUCHDB_PATH"
 
 WORKDIR $COUCHDB_PATH
 
-COPY ./couchdb/local.ini "$COUCHDB_PATH/etc/default.d/10-docker-default.ini"
+#COPY ./couchdb/local.ini "$COUCHDB_PATH/etc/local.d/10-docker-default.ini"
 COPY ./couchdb/vm.args "$COUCHDB_PATH/etc/"
 
 RUN mkdir "$COUCHDB_PATH/data"

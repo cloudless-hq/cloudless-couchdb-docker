@@ -20,15 +20,13 @@ helm-deploy:
 	@echo "Finish cluster setup by running: make cluster"
 
 cluster:
-	for number in 0 1 2 ; do \
-		kubectl exec -it $(release)-couchdb-$$number -c couchdb -- \
-			curl -s \
-			$(couchdb)/_cluster_setup \
-			-X POST \
-			-H "Content-Type: application/json" \
-			-d '{"action": "finish_cluster"}' \
-			-u "$(creds)" ; \
-	done
+	kubectl exec -it $(release)-couchdb-0 -c couchdb -- \
+		curl -s \
+		$(couchdb)/_cluster_setup \
+		-X POST \
+		-H "Content-Type: application/json" \
+		-d '{"action": "finish_cluster"}' \
+		-u "$(creds)" ;
 	@echo "Exposing the cluster on a public service"
 	kubectl expose service $(release)-svc-couchdb --type=LoadBalancer --name=$(public_service)
 	minikube service $(public_service) --url

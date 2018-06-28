@@ -8,7 +8,7 @@ RUN curl -fsSL "http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/bina
 # -> used artifacts: /usr/share/maven
 
 # --- Stage2: Install Clouseau
-FROM erlang:18-slim as ntr-clouseau
+FROM erlang:18-slim as ntr-clouseau-build
 ENV MAVEN_HOME /usr/share/maven
 ENV CLOUSEAU_PATH /opt/clouseau
 ENV INDEX_DIR /index
@@ -52,12 +52,40 @@ RUN git clone -b ntr_master https://github.com/neutrinity/clouseau . \
 # TODO tests need to get unskipped
 RUN mvn verify -Dmaven.test.skip=true
 
+# --- Stage3: Finalize Clouseau
+FROM erlang:18-slim as ntr-clouseau
+ENV CLOUSEAU_PATH /opt/clouseau
+ENV INDEX_DIR /index
+
+RUN apt-get -qq update -y \
+  && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y apt-utils \
+  && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y --no-install-recommends \
+  libnspr4 libnspr4-0d \
+  openssl \
+  curl \
+  ca-certificates \
+  unzip \
+  openjdk-7-jdk \
+  && rm -rf /var/lib/apt/lists/*
+
+# this is a hack to clean everything up
+RUN mkdir -p "${CLOUSEAU_PATH}/lib" \
+  && groupadd -r clouseau && useradd -d "$CLOUSEAU_PATH" -g clouseau clouseau
+
+WORKDIR $CLOUSEAU_PATH
+
+COPY --from=ntr-clouseau-build "${CLOUSEAU_PATH}/target/clouseau-2.10.0-SNAPSHOT.zip" .
+RUN unzip -j "${CLOUSEAU_PATH}/clouseau-2.10.0-SNAPSHOT.zip" -d "${CLOUSEAU_PATH}/lib"
+
 COPY ./docker-entrypoint.sh $CLOUSEAU_PATH
 
 # Setup directories and permissions
-RUN touch clouseau.ini \
+RUN mkdir -p "${CLOUSEAU_PATH}/etc" \
+  && touch "${CLOUSEAU_PATH}/etc/clouseau.ini" \
   && chmod +x docker-entrypoint.sh \
   && chown -R clouseau:clouseau "$CLOUSEAU_PATH"
+
+COPY ./clouseau/log4j.properties "${CLOUSEAU_PATH}/etc"
 
 RUN mkdir -p "$INDEX_DIR"
 VOLUME ["$INDEX_DIR"]

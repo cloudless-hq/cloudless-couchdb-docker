@@ -21,7 +21,7 @@ services:
       - ERLANG_COOKIE=cookie_monster
       - COUCHDB_USER=jan
       - COUCHDB_PASSWORD=password
-      - CLOUSEAU_NAME=clouseau@clouseau.local
+      - CLOUSEAU_NAME=clouseau.local
     volumes:
       - './data/couchdb/:/opt/couchdb/data/'
   clouseau.local:

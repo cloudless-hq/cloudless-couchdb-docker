@@ -17,7 +17,24 @@ helm-deploy:
 	$(MAKE) docker-build image_name=couchdb-test docker_file=./couchdb/Dockerfile
 	@echo "Deploying to Minikube"
 	helm install --name $(release) ./.helm/cloudless-couchdb
-	@echo "Finish cluster setup by running: make cluster"
+	@echo ""
+	@echo ""
+	@echo ""
+	@echo "Finish cluster setup by running:"
+	@echo "make cluster"
+	@echo "make cluster-clouseau"
+
+cluster-clouseau:
+	@echo "Registering Clouseau nodes on each CouchDB node"
+	kubectl exec -it $(release)-couchdb-0 -c couchdb -- \
+		curl -X PUT $(couchdb)/_node/_local/_config/dreyfus/name \
+		-d '"clouseau@clouseau-statefulset-0.clouseau-headless-service.default.svc.cluster.local"' ;
+	kubectl exec -it $(release)-couchdb-1 -c couchdb -- \
+		curl -X PUT $(couchdb)/_node/_local/_config/dreyfus/name \
+		-d '"clouseau@clouseau-statefulset-1.clouseau-headless-service.default.svc.cluster.local"';
+	kubectl exec -it $(release)-couchdb-2 -c couchdb -- \
+		curl -X PUT $(couchdb)/_node/_local/_config/dreyfus/name \
+		-d '"clouseau@clouseau-statefulset-2.clouseau-headless-service.default.svc.cluster.local"';
 
 cluster:
 	kubectl exec -it $(release)-couchdb-0 -c couchdb -- \

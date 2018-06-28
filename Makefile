@@ -8,6 +8,7 @@ curl_post := @curl -s -X POST -H "Content-Type: application/json" -u $(creds)
 curl_put := @curl -s -X PUT -H "Content-Type: application/json" -u $(creds)
 hadolint := docker run --rm -i hadolint/hadolint hadolint
 release := couchdb-test-cluster
+public_service := couchdb-loadbalancer
 
 helm-deploy:
 	@echo "Building images"
@@ -28,8 +29,9 @@ cluster:
 			-d '{"action": "finish_cluster"}' \
 			-u "$(creds)" ; \
 	done
-	kubectl expose service $(release)-svc-couchdb --type=LoadBalancer --name=couchdb-public
-	minikube service couchdb-public --url
+	@echo "Exposing the cluster on a public service"
+	kubectl expose service $(release)-svc-couchdb --type=LoadBalancer --name=$(public_service)
+	minikube service $(public_service) --url
 
 # in the end this will do the following:
 # 1. confirm configuration we set (so it's applied)
@@ -47,18 +49,18 @@ helm-lint:
 helm-undeploy:
 	@echo "Removing release"
 	helm delete --purge $(release)
-	kubectl delete service/couchdb-public
+	kubectl delete service/$(public_service)
 
 helm-upgrade:
 	helm upgrade $(release) ./.helm/cloudless-couchdb
 
 clean:
-	$(eval endpoint := $(shell minikube service couchdb-public --url))
+	$(eval endpoint := $(shell minikube service $(public_service) --url))
 	@echo "Deleting $(db)"
 	curl -X DELETE -u $(creds) $(endpoint)/$(db)
 
 setup:
-	$(eval endpoint := $(shell minikube service couchdb-public --url))
+	$(eval endpoint := $(shell minikube service $(public_service) --url))
 	@echo "Creating database(s) on all nodes of cluster $(endpoint)"
 	$(curl_put) $(endpoint)/$(db)
 	@echo "Populating '$(db)' with test data/fixtures"
@@ -70,7 +72,7 @@ setup:
 	$(curl_post) -d @$(dir)/test-index1.txt $(endpoint)/$(db)/_index
 
 run-tests:
-	$(eval endpoint := $(shell minikube service couchdb-public --url))
+	$(eval endpoint := $(shell minikube service $(public_service) --url))
 
 
 docker-lint:

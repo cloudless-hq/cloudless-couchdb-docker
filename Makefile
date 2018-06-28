@@ -92,7 +92,10 @@ setup:
 
 run-tests:
 	$(eval endpoint := $(shell minikube service $(public_service) --url))
-
+	@echo "Query 1"
+	$(curl_post) -d @$(dir)/test-query1.txt $(endpoint)/$(db)/_find
+	#@echo "Query 2"
+	#$(curl_post) -d @$(dir)/test-query2.txt $(endpoint)/$(db)/_find
 
 docker-lint:
 	$(hadolint) --ignore DL3008 --ignore DL3015 - < ./couchdb/Dockerfile

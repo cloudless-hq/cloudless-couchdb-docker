@@ -65,6 +65,8 @@ RUN apt-get -qq update -y \
   openssl \
   libicu52 \
   procps \
+  libmozjs185-dev \
+  libmozjs185-1.0 \
   # needed for cluster setup & testing
   curl \
   jq \

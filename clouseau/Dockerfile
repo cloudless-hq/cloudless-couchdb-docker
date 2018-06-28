@@ -61,11 +61,9 @@ RUN apt-get -qq update -y \
   && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y apt-utils \
   && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y --no-install-recommends \
   libnspr4 libnspr4-0d \
-  openssl \
   curl \
-  ca-certificates \
   unzip \
-  openjdk-7-jdk \
+  openjdk-7-jre-headless \
   && rm -rf /var/lib/apt/lists/*
 
 # this is a hack to clean everything up
@@ -75,7 +73,8 @@ RUN mkdir -p "${CLOUSEAU_PATH}/lib" \
 WORKDIR $CLOUSEAU_PATH
 
 COPY --from=ntr-clouseau-build "${CLOUSEAU_PATH}/target/clouseau-2.10.0-SNAPSHOT.zip" .
-RUN unzip -j "${CLOUSEAU_PATH}/clouseau-2.10.0-SNAPSHOT.zip" -d "${CLOUSEAU_PATH}/lib"
+RUN unzip -j "${CLOUSEAU_PATH}/clouseau-2.10.0-SNAPSHOT.zip" -d "${CLOUSEAU_PATH}/lib" \
+  && rm "${CLOUSEAU_PATH}/clouseau-2.10.0-SNAPSHOT.zip"
 
 COPY ./docker-entrypoint.sh $CLOUSEAU_PATH
 

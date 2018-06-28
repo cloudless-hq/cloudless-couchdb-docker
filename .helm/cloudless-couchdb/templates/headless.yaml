@@ -1,0 +1,14 @@
+# a headless service to grab all pods/containers later
+apiVersion: v1
+kind: Service
+metadata:
+  name: clouseau-headless-service
+  labels:
+    app: clouseau
+spec:
+  clusterIP: None
+  ports:
+    - name: epmd
+      port: 4369
+  selector:
+    app: clouseau

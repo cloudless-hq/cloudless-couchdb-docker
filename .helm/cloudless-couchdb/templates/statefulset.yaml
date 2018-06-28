@@ -1,0 +1,27 @@
+apiVersion: apps/v1beta2
+kind: StatefulSet
+metadata:
+  name: clouseau-statefulset
+  labels:
+    app: clouseau
+spec:
+  replicas: 3
+  serviceName: clouseau-headless-service
+  selector:
+    matchLabels:
+      app: clouseau
+  template:
+    metadata:
+      labels:
+        app: clouseau
+    spec:
+      containers:
+        - name: clouseau
+          image: clouseau-test:latest
+          imagePullPolicy: Never
+          ports:
+            - name: epmd
+              containerPort: 4369
+          env:
+            - name: ERL_FLAGS
+              value: " -name clouseau -setcookie monster"

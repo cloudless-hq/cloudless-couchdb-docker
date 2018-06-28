@@ -86,7 +86,7 @@ RUN mkdir -p "${CLOUSEAU_PATH}/etc" \
 
 COPY ./clouseau/log4j.properties "${CLOUSEAU_PATH}/etc"
 
-RUN mkdir -p "$INDEX_DIR"
+RUN mkdir -p "$INDEX_DIR" && chown -R clouseau:clouseau "$INDEX_DIR"
 VOLUME ["$INDEX_DIR"]
 
 USER clouseau

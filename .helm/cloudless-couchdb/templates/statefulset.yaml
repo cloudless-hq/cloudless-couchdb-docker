@@ -25,3 +25,5 @@ spec:
           env:
             - name: ERL_FLAGS
               value: " -name clouseau -setcookie monster"
+            - name: ERLANG_COOKIE
+              value: monster

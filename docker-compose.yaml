@@ -35,7 +35,7 @@ services:
     environment:
       - INDEX_DIR=/index
       - ERLANG_COOKIE=cookie_monster
-      - NODE_NAME=clouseau@clouseau.local
+      - NODE_NAME=clouseau.local
     volumes:
       - './data/clouseau/:/index'
     depends_on:

@@ -9,6 +9,7 @@ curl_put := @curl -s -X PUT -H "Content-Type: application/json" -u $(creds)
 hadolint := docker run --rm -i hadolint/hadolint hadolint
 release := couchdb-test-cluster
 public_service := couchdb-loadbalancer
+nodes := 0 1 2
 
 helm-deploy:
 	@echo "Building images"
@@ -52,7 +53,7 @@ cluster:
 # 1. confirm configuration we set (so it's applied)
 # 2. confirm membership (count all_nodes vs. cluster_nodes in /_membership)
 cluster-status:
-	for number in 0 1 2 ; do \
+	for number in $(nodes) ; do \
 		kubectl exec -it $(release)-couchdb-$$number \
 			-c couchdb -- bash -c "echo 'dreyfus.name: ' \
 			&& curl -s $(couchdb)/_node/_local/_config/dreyfus/name \

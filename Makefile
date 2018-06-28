@@ -53,9 +53,13 @@ cluster:
 # 2. confirm membership (count all_nodes vs. cluster_nodes in /_membership)
 cluster-status:
 	for number in 0 1 2 ; do \
-		kubectl exec -it $(release)-couchdb-$$number -c couchdb -- \
-			curl -s $(couchdb)/_node/_local/_config/httpd/bind_address \
-			&& curl -s $(couchdb)/_node/_local/_config/chttpd/bind_address ; \
+		kubectl exec -it $(release)-couchdb-$$number \
+			-c couchdb -- bash -c "echo 'dreyfus.name: ' \
+			&& curl -s $(couchdb)/_node/_local/_config/dreyfus/name \
+			&& echo 'httpd.bind_address: ' \
+			&& curl -s $(couchdb)/_node/_local/_config/httpd/bind_address \
+			&& echo 'chttpd.bind_address: ' \
+			&& curl -s $(couchdb)/_node/_local/_config/chttpd/bind_address " ; \
 	done
 
 helm-lint:

@@ -1,9 +1,17 @@
-## Configure couchdb 'subchart'
 clouseau:
   image:
     pullPolicy: IfNotPresent
     repository: cloudlesshq/clouseau
     tag: latest
+logging:
+  es:
+    host: CHANGEME
+    port: 9243
+    http_user: elastic
+    http_passwd: CHANGEME
+    index: minikube
+    logstash_prefix: minikube
+    tls: "on"
 couchdb:
   #adminUsername: jan
   #adminPassword: password
@@ -34,3 +42,12 @@ couchdb:
       nginx.ingress.kubernetes.io/enable-cors: "true"
     hosts:
       - couchdb.local
+
+## Configure 'fluent-bit' subchart
+fluent-bit:
+  on_minikube: true
+  existingConfigMap: fluent-bit-config
+  rbac:
+    create: false
+  serviceAccount:
+    name: fluentd-service-account

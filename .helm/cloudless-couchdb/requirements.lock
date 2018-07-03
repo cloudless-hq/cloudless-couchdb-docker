@@ -5,5 +5,8 @@ dependencies:
 - name: cloudless-kubeseal
   repository: file://../cloudless-kubeseal
   version: 0.1.0
-digest: sha256:b482489803df92caafd74945a8a3f7f2c13b243cc866331fd9e4aec6fb63335f
-generated: 2018-07-23T12:02:49.86073023+02:00
+- name: fluent-bit
+  repository: https://kubernetes-charts.storage.googleapis.com
+  version: 0.6.0
+digest: sha256:04d133249e4f6fecaa9ddc9a7be8780d4f792ba3d7a9f31cb5f395347168b691
+generated: 2018-07-03T14:50:06.556351355+02:00

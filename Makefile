@@ -9,6 +9,7 @@ curl_put := @curl -s -X PUT -H "Content-Type: application/json" -u $(creds)
 hadolint := docker run --rm -i hadolint/hadolint hadolint
 release := couchdb-test-cluster
 nodes := 0 1 2
+chart := ./.helm/cloudless-couchdb
 
 helm-deploy:
 	@echo "Enabling ingress-nginx"
@@ -75,9 +76,6 @@ helm-lint:
 helm-undeploy:
 	@echo "Removing release"
 	helm delete --purge $(release)
-
-helm-upgrade:
-	helm upgrade $(release) ./.helm/cloudless-couchdb
 
 clean:
 	@echo "Deleting $(db)"

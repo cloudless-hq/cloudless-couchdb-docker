@@ -3,7 +3,7 @@ kind: ConfigMap
 metadata:
   name: fluent-bit-config
   labels:
-    k8s-app: fluent-bit
+    app: fluent-bit
 data:
   # Configuration files: server, input, filters and output
   # ======================================================
@@ -13,10 +13,7 @@ data:
         Log_Level     info
         Daemon        off
         Parsers_File  parsers.conf
-    @INCLUDE input-kubernetes.conf
-    @INCLUDE filter-kubernetes.conf
-    @INCLUDE output-elasticsearch.conf
-  input-kubernetes.conf: |
+
     [INPUT]
         Name              tail
         Tag               kube.*
@@ -28,14 +25,13 @@ data:
         Refresh_Interval  10
         Multiline         On
 
-  filter-kubernetes.conf: |
     [FILTER]
         Name                kubernetes
         Match               kube.*
         Kube_URL            https://kubernetes.default.svc.cluster.local:443
         Merge_Log           On
         K8S-Logging.Parser  On
-  output-elasticsearch.conf: |
+
     [OUTPUT]
         Name            es
         Match           *
@@ -47,6 +43,7 @@ data:
         Retry_Limit     False
         Type            flb_type
         Logstash_Prefix {{ .Values.logging.es.logstash_prefix }}
+
   parsers.conf: |
     [PARSER]
         Name   nginx

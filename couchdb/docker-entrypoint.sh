@@ -44,6 +44,16 @@ if [ "$1" = '/opt/couchdb/bin/couchdb' ]; then
 		chown couchdb:couchdb /opt/couchdb/etc/local.d/docker.ini
 	fi
 
+	if [ "$GENERATED_NAME" ] && [ "$POD_NAME" ]; then
+		# Create admin
+		echo "generating clouseau dreyfus config entry"
+
+		pod_number=${POD_NAME#$GENERATED_NAME}
+
+		printf "[dreyfus]\nname = %s\n" "clouseau@couchdb-$NAMESPACE-couchdb-$pod_number.couchdb-$NAMESPACE-couchdb.$NAMESPACE.svc.cluster.local" > /opt/couchdb/etc/local.d/docker.ini
+		chown couchdb:couchdb /opt/couchdb/etc/local.d/docker.ini
+	fi
+
 	if [ "$COUCHDB_SECRET" ]; then
 		# Set secret
 		printf "[couch_httpd_auth]\nsecret = %s\n" "$COUCHDB_SECRET" >> /opt/couchdb/etc/local.d/docker.ini

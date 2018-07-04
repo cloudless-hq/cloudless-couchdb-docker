@@ -3,16 +3,22 @@ kind: ConfigMap
 metadata:
   name: fluent-bit-config
   labels:
-    app: fluent-bit
+    app: {{ template "fluent-bit.name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
 data:
   # Configuration files: server, input, filters and output
   # ======================================================
-  fluent-bit.conf: |
+  fluent-bit.conf: |-
     [SERVICE]
         Flush         1
         Log_Level     info
         Daemon        off
         Parsers_File  parsers.conf
+        Parsers_File  parsers_std.conf
+        Parsers_File  parsers_java.conf
+        Parsers_File  parsers_mult.conf
 
     [INPUT]
         Name              tail
@@ -43,8 +49,7 @@ data:
         Retry_Limit     False
         Type            flb_type
         Logstash_Prefix {{ .Values.logging.es.logstash_prefix }}
-
-  parsers.conf: |
+  parsers_std.conf: |
     [PARSER]
         Name   nginx
         Format regex

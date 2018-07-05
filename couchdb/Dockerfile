@@ -34,6 +34,7 @@ RUN apt-get -qq update -y \
   libicu52 \
   procps
 
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN curl -sL https://deb.nodesource.com/setup_8.x | bash - \
   && DEBIAN_FRONTEND=noninteractive apt-get -qq install -y nodejs \
   && npm set progress=false && npm install -g grunt-cli@1.2.0 \

@@ -2,7 +2,9 @@
 FROM buildpack-deps:jessie as ntr-base
 ENV MAVEN_VERSION 3.5.2
 ENV MAVEN_HOME /usr/share/maven
+
 # install maven
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 RUN curl -fsSL "http://archive.apache.org/dist/maven/maven-3/$MAVEN_VERSION/binaries/apache-maven-$MAVEN_VERSION-bin.tar.gz" | tar xzf - -C /usr/share \
   && mv "/usr/share/apache-maven-${MAVEN_VERSION}" /usr/share/maven
 # -> used artifacts: /usr/share/maven

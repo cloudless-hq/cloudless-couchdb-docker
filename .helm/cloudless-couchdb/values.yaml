@@ -16,3 +16,11 @@ couchdb:
     pullPolicy: Never
     repository: couchdb-test
     tag: latest
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+      nginx.ingress.kubernetes.io/rewrite-target: /
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+    hosts:
+      - couchdb.local

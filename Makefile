@@ -8,10 +8,11 @@ curl_post := @curl -s -X POST -H "Content-Type: application/json" -u $(creds)
 curl_put := @curl -s -X PUT -H "Content-Type: application/json" -u $(creds)
 hadolint := docker run --rm -i hadolint/hadolint hadolint
 release := couchdb-test-cluster
-public_service := couchdb-loadbalancer
 nodes := 0 1 2
 
 helm-deploy:
+	@echo "Enabling ingress-nginx"
+	minikube addons enable ingress
 	@echo "Building images"
 	eval $(minikube docker-env)
 	$(MAKE) docker-build image_name=clouseau-test docker_file=./clouseau/Dockerfile
@@ -45,9 +46,10 @@ cluster:
 		-H "Content-Type: application/json" \
 		-d '{"action": "finish_cluster"}' \
 		-u "$(creds)" ;
-	@echo "Exposing the cluster on a public service"
-	kubectl expose service $(release)-svc-couchdb --type=LoadBalancer --name=$(public_service)
-	minikube service $(public_service) --url
+	@echo ""
+	@echo "Cluster is (almost) ready! Please execute this, and then go check out CouchDB in the browser!"
+	@echo 'echo "$(minikube ip) couchdb.local" | sudo tee -a /etc/hosts"'
+	@echo 'open "http://couchdb.local"'
 
 # in the end this will do the following:
 # 1. confirm configuration we set (so it's applied)
@@ -69,7 +71,6 @@ helm-lint:
 helm-undeploy:
 	@echo "Removing release"
 	helm delete --purge $(release)
-	kubectl delete service/$(public_service)
 
 helm-upgrade:
 	helm upgrade $(release) ./.helm/cloudless-couchdb

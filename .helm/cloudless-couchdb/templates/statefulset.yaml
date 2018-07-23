@@ -17,8 +17,8 @@ spec:
     spec:
       containers:
         - name: clouseau
-          image: clouseau-test:latest
-          imagePullPolicy: Never
+          image: "{{ .Values.clouseau.image.repository }}:{{ .Values.clouseau.image.tag }}"
+          imagePullPolicy: {{ .Values.clouseau.image.pullPolicy }}
           ports:
             - name: epmd
               containerPort: 4369

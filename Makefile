@@ -1,7 +1,7 @@
 .PHONY : clean setup run-tests
 
 creds := jan:password
-couchdb := http://$(creds)@127.0.0.1:5984
+couchdb := http://$(creds)@couchdb.local
 db := test-database
 dir := $(shell pwd)/test
 curl_post := @curl -s -X POST -H "Content-Type: application/json" -u $(creds)
@@ -15,8 +15,8 @@ helm-deploy:
 	minikube addons enable ingress
 	@echo "Building images"
 	eval $(minikube docker-env)
-	$(MAKE) docker-build image_name=clouseau-test docker_file=./clouseau/Dockerfile
-	$(MAKE) docker-build image_name=couchdb-test docker_file=./couchdb/Dockerfile
+	#$(MAKE) docker-build image_name=clouseau-test docker_file=./clouseau/Dockerfile
+	#$(MAKE) docker-build image_name=couchdb-test docker_file=./couchdb/Dockerfile
 	@echo "Deploying to Minikube"
 	helm install --name $(release) ./.helm/cloudless-couchdb
 	@echo ""
@@ -48,7 +48,8 @@ cluster:
 		-u "$(creds)" ;
 	@echo ""
 	@echo "Cluster is (almost) ready! Please execute this, and then go check out CouchDB in the browser!"
-	@echo 'echo "$(minikube ip) couchdb.local" | sudo tee -a /etc/hosts"'
+	@echo 'minikube ip'
+	@echo 'echo "<MINIKUBE IP> couchdb.local" | sudo tee -a /etc/hosts"'
 	@echo 'open "http://couchdb.local"'
 
 # in the end this will do the following:
@@ -67,6 +68,7 @@ cluster-status:
 
 helm-lint:
 	helm lint ./.helm/cloudless-couchdb
+	helm lint ./.helm/cloudless-kubeseal
 
 helm-undeploy:
 	@echo "Removing release"
@@ -76,26 +78,23 @@ helm-upgrade:
 	helm upgrade $(release) ./.helm/cloudless-couchdb
 
 clean:
-	$(eval endpoint := $(shell minikube service $(public_service) --url))
 	@echo "Deleting $(db)"
-	curl -X DELETE -u $(creds) $(endpoint)/$(db)
+	curl -X DELETE -u $(creds) $(couchdb)/$(db)
 
 setup:
-	$(eval endpoint := $(shell minikube service $(public_service) --url))
 	@echo "Creating database(s) on all nodes of cluster $(endpoint)"
-	$(curl_put) $(endpoint)/$(db)
+	$(curl_put) $(couchdb)/$(db)
 	@echo "Populating '$(db)' with test data/fixtures"
-	$(curl_post) -d @$(dir)/doc1.json $(endpoint)/$(db)
-	$(curl_post) -d @$(dir)/doc2.json $(endpoint)/$(db)
-	$(curl_post) -d @$(dir)/doc3.json $(endpoint)/$(db)
-	$(curl_post) -d @$(dir)/doc4.json $(endpoint)/$(db)
+	$(curl_post) -d @$(dir)/doc1.json $(couchdb)/$(db)
+	$(curl_post) -d @$(dir)/doc2.json $(couchdb)/$(db)
+	$(curl_post) -d @$(dir)/doc3.json $(couchdb)/$(db)
+	$(curl_post) -d @$(dir)/doc4.json $(couchdb)/$(db)
 	@echo "Creating index (Mango)"
-	$(curl_post) -d @$(dir)/test-index1.txt $(endpoint)/$(db)/_index
+	$(curl_post) -d @$(dir)/test-index1.txt $(couchdb)/$(db)/_index
 
 run-tests:
-	$(eval endpoint := $(shell minikube service $(public_service) --url))
 	@echo "Query 1"
-	$(curl_post) -d @$(dir)/test-query1.txt $(endpoint)/$(db)/_find
+	$(curl_post) -d @$(dir)/test-query1.txt $(couchdb)/$(db)/_find
 	#@echo "Query 2"
 	#$(curl_post) -d @$(dir)/test-query2.txt $(endpoint)/$(db)/_find
 

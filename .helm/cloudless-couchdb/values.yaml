@@ -1,4 +1,9 @@
 ## Configure couchdb 'subchart'
+clouseau:
+  image:
+    pullPolicy: IfNotPresent
+    repository: cloudlesshq/clouseau
+    tag: latest
 couchdb:
   adminUsername: jan
   adminPassword: password
@@ -13,8 +18,11 @@ couchdb:
   clusterSize: 3
   enabled: true
   image:
-    pullPolicy: Never
-    repository: couchdb-test
+    pullPolicy: IfNotPresent
+    repository: cloudlesshq/couchdb
+    # For local testing:
+    # pullPolicy: Never
+    # repository: couchdb-test
     tag: latest
   ingress:
     enabled: true

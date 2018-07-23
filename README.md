@@ -34,6 +34,18 @@ $ make helm-undeploy
 
 Full text searching is enabled and fully functional. See the Cloudant [documentation](https://cloudant.com/for-developers/search/) for more info on how to test use the full text searching capabilities.
 
+## Build images locally
+
+For changes to the images, build the Docker images from the Dockerfile's using the following:
+
+```
+$ eval $(minikube docker-env)
+$ make docker-build image_name=clouseau-test docker_file=./clouseau/Dockerfile
+$ make docker-build image_name=couchdb-test docker_file=./couchdb/Dockerfile
+```
+
+Then configure `.helm/cloudless-couchdb/values.yaml` accordingly.
+
 ## Run tests
 
 **Please note:** This expects you have a cluster in Minikube running.

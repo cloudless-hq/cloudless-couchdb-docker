@@ -14,6 +14,31 @@ In case you want to backup/replace the key:
 $ make kubeseal-backup
 ```
 
+## Verification
+
+This is the `example-sealed-secret`:
+
+```
+bar bar, bar, maybe foo, also foobar
+```
+
+This is the contents of our "secret" foobar.
+
+```
+$ kubectl get secret foobar
+NAME      TYPE      DATA      AGE
+foobar    Opaque    1         1m
+```
+
+To verify we can decrypt:
+
+```
+$ kubectl get secret foobar -o json|jq '.data.foobar|@base64d'
+... :-)
+```
+
+_Requires jq 1.6+._
+
 ## Production
 
 For a production setup, don't commit the `master.key` to a public repository, but instead

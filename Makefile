@@ -67,6 +67,7 @@ cluster-status:
 
 helm-lint:
 	helm lint ./.helm/cloudless-couchdb
+	helm lint ./.helm/cloudless-kubeseal
 
 helm-undeploy:
 	@echo "Removing release"

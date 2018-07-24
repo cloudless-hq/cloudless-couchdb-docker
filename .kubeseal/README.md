@@ -14,6 +14,10 @@ In case you want to backup/replace the key:
 $ make kubeseal-backup
 ```
 
+Remove the following fields on your backup:
+ - `resourceVersion`
+ - `uid`
+
 ## Verification
 
 This is the `example-sealed-secret`:
@@ -30,7 +34,7 @@ NAME      TYPE      DATA      AGE
 foobar    Opaque    1         1m
 ```
 
-To verify we can decrypt:
+To verify that the Secret was created from the SealedSecret we can decode it:
 
 ```
 $ kubectl get secret foobar -o json|jq '.data.foobar|@base64d'

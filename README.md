@@ -25,40 +25,20 @@ Deploy the cluster:
 
 ```
 $ make helm-deploy
-$ cd .kubeseal/ && make kubeseal-deploy # this ensures we set a master.key
-$ cd ..
 $ make cluster # this prints an IP:PORT to use for Fauxton
 ...
 $ make helm-undeploy
 ```
 
-Full text searching is enabled and fully functional. See the Cloudant [documentation](https://cloudant.com/for-developers/search/) for more info on how to test use the full text searching capabilities.
+### Behind the scenese
 
-## Build images locally
+ 1. We deploy our helm chart for Kubeseal first, followed by the chart for cloudless-couchdb.
+ 2. In between, we ensure _our_ master.key is used so the admin secret for CouchDB can be decrypted.
 
-For changes to the images, build the Docker images from the Dockerfile's using the following:
+## `Secret` and `SealedSecret`
 
-```
-$ eval $(minikube docker-env)
-$ make docker-build image_name=clouseau-test docker_file=./clouseau/Dockerfile
-$ make docker-build image_name=couchdb-test docker_file=./couchdb/Dockerfile
-```
+Speaking of secrets! Kubeseal creates a `Secret`, from our `SealedSecret`.
 
-Then configure `.helm/cloudless-couchdb/values.yaml` accordingly.
+Check out [couchdb-secret.json-dist](couchdb-secret.json-dist) for our "un-sealed" base.
 
-## Run tests
-
-**Please note:** This expects you have a cluster in Minikube running.
-
-Execute tests and watch output:
-
-```
-$ make test
-$ make helm-lint
-```
-
-For CI, please see:
-
-```
-$ make docker-lint
-```
+The _sealed_ result is checked into `.helm/cloudless-couchdb/templates/couchdb-admin-secret.yaml`.

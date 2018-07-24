@@ -14,6 +14,10 @@ In case you want to backup/replace the key:
 $ make kubeseal-backup
 ```
 
+Remove the following fields on your backup:
+ - `resourceVersion`
+ - `uid`
+
 ## Verification
 
 This is the `example-sealed-secret`:

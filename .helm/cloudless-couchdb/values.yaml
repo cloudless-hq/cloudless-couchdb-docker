@@ -46,7 +46,7 @@ couchdb:
 ## Configure 'fluent-bit' subchart
 fluent-bit:
   on_minikube: true
-  existingConfigMap: fluent-bit-config
+  existingConfigMap: cloudless-fluentbit-config
   rbac:
     create: false
   serviceAccount:

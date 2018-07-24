@@ -5,8 +5,9 @@ clouseau:
     repository: cloudlesshq/clouseau
     tag: latest
 couchdb:
-  adminUsername: jan
-  adminPassword: password
+  #adminUsername: jan
+  #adminPassword: password
+  #cookieAuthSecret: monster
   couchdbConfig:
     chttpd:
       bind_address: any
@@ -16,6 +17,7 @@ couchdb:
       level: info
       writer: stdout
   clusterSize: 3
+  createAdminSecret: false
   enabled: true
   image:
     pullPolicy: IfNotPresent

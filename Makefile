@@ -18,7 +18,9 @@ helm-deploy:
 	#$(MAKE) docker-build image_name=clouseau-test docker_file=./clouseau/Dockerfile
 	#$(MAKE) docker-build image_name=couchdb-test docker_file=./couchdb/Dockerfile
 	@echo "Deploying to Minikube"
-	helm install --name $(release) ./.helm/cloudless-couchdb
+	helm upgrade --install --debug $(release) ./.helm/cloudless-kubeseal
+	cd .kubeseal && $(MAKE) kubeseal-deploy # replaces the master key
+	helm upgrade --install --debug $(release) ./.helm/cloudless-couchdb
 	@echo ""
 	@echo ""
 	@echo ""

@@ -50,7 +50,7 @@ data:
         Retry_Limit     False
         Type            flb_type
         Logstash_Prefix {{ .Values.logging.es.logstash_prefix }}
-  parsers_std.conf: |
+  parsers_std.conf: |-
     [PARSER]
         Name   nginx
         Format regex

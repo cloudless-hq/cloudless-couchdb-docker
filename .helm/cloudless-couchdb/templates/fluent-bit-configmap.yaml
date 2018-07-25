@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-cloudless-fluentbit-config
+  name: cloudless-fluentbit-config
   labels:
     app: {{ template "fluent-bit.fullname" . }}
     chart: {{ .Chart.Name }}-{{ .Chart.Version }}

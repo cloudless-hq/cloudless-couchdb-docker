@@ -7,4 +7,4 @@ dependencies:
     repository: "file://../cloudless-kubeseal"
   - name: fluent-bit
     version: 0.6.0
-    repository: "@stable"
+    repository: "file://../fluent-bit"

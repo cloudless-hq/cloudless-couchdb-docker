@@ -11,16 +11,20 @@ release := couchdb-test-cluster
 nodes := 0 1 2
 chart := ./.helm/cloudless-couchdb
 
-helm-deploy:
-	@echo "Enabling ingress-nginx"
-	minikube addons enable ingress
+build_test_images:
 	@echo "Building images"
 	eval $(minikube docker-env)
 	#$(MAKE) docker-build image_name=clouseau-test docker_file=./clouseau/Dockerfile
 	#$(MAKE) docker-build image_name=couchdb-test docker_file=./couchdb/Dockerfile
-	@echo "Deploying to Minikube"
+
+prepare-cluster:
 	helm upgrade --install --debug $(release) ./.helm/cloudless-kubeseal
 	cd .kubeseal && $(MAKE) kubeseal-deploy # replaces the master key
+
+helm-deploy:
+	@echo "Enabling ingress-nginx"
+	minikube addons enable ingress
+	@echo "Deploying to Minikube"
 	helm upgrade --install --debug $(release) ./.helm/cloudless-couchdb
 	@echo ""
 	@echo ""

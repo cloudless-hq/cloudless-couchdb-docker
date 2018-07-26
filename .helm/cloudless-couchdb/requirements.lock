@@ -2,8 +2,8 @@ dependencies:
 - name: couchdb
   repository: http://storage.googleapis.com/kubernetes-charts-incubator
   version: 0.1.6
-- name: cloudless-kubeseal
-  repository: file://../cloudless-kubeseal
-  version: 0.1.0
-digest: sha256:b482489803df92caafd74945a8a3f7f2c13b243cc866331fd9e4aec6fb63335f
-generated: 2018-07-23T12:02:49.86073023+02:00
+- name: fluent-bit
+  repository: file://../fluent-bit
+  version: 0.6.1
+digest: sha256:2bd64189516f93bdf10e7bb7d02c8b035007ca8f27041148858d48295d540870
+generated: 2018-07-26T11:29:42.657632818+02:00

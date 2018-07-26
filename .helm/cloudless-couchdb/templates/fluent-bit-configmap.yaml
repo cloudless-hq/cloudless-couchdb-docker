@@ -1,0 +1,110 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cloudless-fluentbit-config
+  labels:
+    app: {{ template "fluent-bit.fullname" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    heritage: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+    cloudless: override
+data:
+  fluent-bit.conf: |-
+    [SERVICE]
+        Flush         1
+        Log_Level     info
+        Daemon        off
+        Parsers_File  parsers.conf
+        Parsers_File  parsers_java.conf
+        Parsers_File  parsers_mult.conf
+
+    [INPUT]
+        Name              tail
+        Tag               kube.*
+        Path              /var/log/containers/*.log
+        Parser            docker
+        DB                /var/log/flb_kube.db
+        Mem_Buf_Limit     5MB
+        Skip_Long_Lines   On
+        Refresh_Interval  10
+        Multiline         On
+
+    [FILTER]
+        Name                kubernetes
+        Match               kube.*
+        Kube_URL            https://kubernetes.default.svc.cluster.local:443
+        Merge_Log           On
+        K8S-Logging.Parser  On
+
+    [OUTPUT]
+        Name            es
+        Match           *
+        Host            {{ .Values.logging.es.host }}
+        Port            {{ .Values.logging.es.port }}
+        HTTP_User       {{ .Values.logging.es.http_user }}
+        HTTP_Passwd     {{ .Values.logging.es.http_passwd }}
+        Logstash_Format On
+        Retry_Limit     False
+        Type            flb_type
+        Logstash_Prefix {{ .Values.logging.es.logstash_prefix }}
+  parsers.conf: |-
+    [PARSER]
+        Name   nginx
+        Format regex
+        Regex ^(?<remote>[^ ]*) (?<host>[^ ]*) (?<user>[^ ]*) \[(?<time>[^\]]*)\] "(?<method>\S+)(?: +(?<path>[^\"]*?)(?: +\S*)?)?" (?<code>[^ ]*) (?<size>[^ ]*)(?: "(?<referer>[^\"]*)" "(?<agent>[^\"]*)")?$
+        Time_Key time
+        Time_Format %d/%b/%Y:%H:%M:%S %z
+    [PARSER]
+        Name   json
+        Format json
+        Time_Key time
+        Time_Format %d/%b/%Y:%H:%M:%S %z
+    [PARSER]
+        Name        docker
+        Format      json
+        Time_Key    time
+        Time_Format %Y-%m-%dT%H:%M:%S.%L
+        Time_Keep   On
+        # Command      |  Decoder | Field | Optional Action
+        # =============|==================|=================
+        Decode_Field_As   escaped    log
+    [PARSER]
+        Name        syslog
+        Format      regex
+        Regex       ^\<(?<pri>[0-9]+)\>(?<time>[^ ]* {1,2}[^ ]* [^ ]*) (?<host>[^ ]*) (?<ident>[a-zA-Z0-9_\/\.\-]*)(?:\[(?<pid>[0-9]+)\])?(?:[^\:]*\:)? *(?<message>.*)$
+        Time_Key    time
+        Time_Format %b %d %H:%M:%S
+  parsers_java.conf: |-
+    [PARSER]
+      Name        java_multiline
+      Format      regex
+      Regex       /^(?<time>\d{4}-\d{1,2}-\d{1,2} \d{1,2}:\d{1,2}:\d{1,2}) \[(?<thread>.*)\] (?<level>[^\s]+)(?<message>.*)/
+      Time_Key    time
+      Time_Format %Y-%m-%d %H:%M:%S
+  parsers_mult.conf: |-
+    [PARSER]
+      Name        mult_first
+      Format      regex
+      Regex       Started (?<method>[^ ]+) "(?<path>[^"]+)" for (?<host>[^ ]+) at (?<time>[^ ]+ [^ ]+ [^ ]+)
+      Time_Key    time
+      Time_Format %Y-%m-%d %H:%M:%S %z
+
+    [PARSER]
+      Name        mult_1
+      Format      regex
+      Regex       /Processing by (?<controller>[^\u0023]+)\u0023(?<controller_method>[^ ]+) as (?<format>[^ ]+?)$/
+
+    [PARSER]
+      Name        mult_2
+      Format      regex
+      Regex       (  Parameters: (?<parameters>[^ ]+))?
+
+    [PARSER]
+      Name        mult_3
+      Format      regex
+      Regex       /  Rendered (?<template>[^ ]+) within (?<layout>.+) \([\d\.]+ms\)/
+
+    [PARSER]
+      Name        mult_4
+      Format      regex
+      Regex       Completed (?<code>[^ ]+) [^ ]+ in (?<runtime>[\d\.]+)ms \(Views: (?<view_runtime>[\d\.]+)ms \| ActiveRecord: (?<ar_runtime>[\d\.]+)ms\)

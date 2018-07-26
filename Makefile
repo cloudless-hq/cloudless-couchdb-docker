@@ -1,4 +1,4 @@
-.PHONY : clean setup run-tests
+.PHONY : clean test-setup run-tests
 
 creds := jan:password
 couchdb := http://$(creds)@couchdb.local
@@ -11,14 +11,14 @@ release := couchdb-test-cluster
 nodes := 0 1 2
 chart := ./.helm/cloudless-couchdb
 
-build_test_images:
+docker-build-images:
 	@echo "Building images"
 	eval $(minikube docker-env)
-	#$(MAKE) docker-build image_name=clouseau-test docker_file=./clouseau/Dockerfile
-	#$(MAKE) docker-build image_name=couchdb-test docker_file=./couchdb/Dockerfile
+	$(MAKE) docker-build image_name=clouseau-test docker_file=./clouseau/Dockerfile
+	$(MAKE) docker-build image_name=couchdb-test docker_file=./couchdb/Dockerfile
 
-prepare-cluster:
-	helm upgrade --install --debug $(release) ./.helm/cloudless-kubeseal
+setup:
+	helm upgrade --install --debug $(release)-setup ./.helm/cloudless-kubeseal
 	cd .kubeseal && $(MAKE) kubeseal-deploy # replaces the master key
 
 helm-deploy:
@@ -76,6 +76,7 @@ cluster-status:
 helm-lint:
 	helm lint ./.helm/cloudless-couchdb
 	helm lint ./.helm/cloudless-kubeseal
+	helm lint ./.helm/fluent-bit
 
 helm-undeploy:
 	@echo "Removing release"
@@ -85,7 +86,7 @@ clean:
 	@echo "Deleting $(db)"
 	curl -X DELETE -u $(creds) $(couchdb)/$(db)
 
-setup:
+test-setup:
 	@echo "Creating database(s) on all nodes of cluster $(endpoint)"
 	$(curl_put) $(couchdb)/$(db)
 	@echo "Populating '$(db)' with test data/fixtures"
@@ -111,4 +112,4 @@ docker-lint:
 docker-build:
 	docker build -t $(image_name) -f $(docker_file) .
 
-test: clean setup run-tests
+test: clean test-setup run-tests

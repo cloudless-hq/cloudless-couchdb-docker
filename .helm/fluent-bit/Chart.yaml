@@ -15,4 +15,4 @@ maintainers:
 name: fluent-bit
 sources:
 - http://fluentbit.io
-version: 0.6.0
+version: 0.6.1

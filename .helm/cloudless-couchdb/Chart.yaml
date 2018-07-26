@@ -2,4 +2,4 @@ apiVersion: v1
 appVersion: "2.1.1"
 description: A (test) wrapper helm chart for 'couchdb' and also Clouseau :-)
 name: cloudless-couchdb
-version: 0.3.0
+version: 0.5.0
